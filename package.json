@@ -1,0 +1,81 @@
+{
+  "name": "ai-text-rewriter-pro",
+  "version": "2.1.1",
+  "description": "Advanced AI-powered Chrome extension for text rewriting using Google Gemini AI. Transform your writing with 17+ built-in modes, custom prompts, and professional writing assistance.",
+  "main": "background.js",
+  "scripts": {
+    "build": "echo 'Chrome extension - no build step required'",
+    "test": "echo 'No tests specified'",
+    "lint": "echo 'Linting not configured'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SupratimRK/Ai-rewrite.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "ai-rewriter",
+    "text-rewriting",
+    "gemini-ai",
+    "google-ai",
+    "writing-assistant",
+    "text-editor",
+    "browser-extension",
+    "ai-writing",
+    "text-improvement",
+    "grammar-checker",
+    "content-creation",
+    "productivity-tool",
+    "javascript",
+    "ai-tools",
+    "writing-enhancement",
+    "text-processor",
+    "chrome-addon",
+    "ai-assistant",
+    "text-transformation",
+    "professional-writing",
+    "content-editing",
+    "language-processing",
+    "nlp",
+    "machine-learning",
+    "artificial-intelligence",
+    "web-extension",
+    "productivity",
+    "writing-tools",
+    "content-optimization"
+  ],
+  "author": {
+    "name": "Supratim Mondal",
+    "email": "supratimrk@outlook.com",
+    "url": "https://supratim.netlify.app"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SupratimRK/Ai-rewrite/issues"
+  },
+  "homepage": "https://github.com/SupratimRK/Ai-rewrite#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "categories": [
+    "productivity",
+    "education",
+    "writing",
+    "ai-tools"
+  ],
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/sponsors/SupratimRK"
+  },
+  "os": ["win32", "darwin", "linux"],
+  "cpu": ["x64", "arm64"],
+  "preferGlobal": false,
+  "private": false,
+  "browserslist": [
+    "Chrome >= 88"
+  ],
+  "config": {
+    "manifest_version": 3,
+    "target_browsers": ["chrome", "edge", "brave", "opera"]
+  }
+}

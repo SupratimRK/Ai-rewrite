@@ -1,0 +1,86 @@
+name: Extension Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Validate manifest.json
+      run: |
+        if [ -f manifest.json ]; then
+          echo "✅ manifest.json found"
+          # Basic JSON validation
+          cat manifest.json | python -m json.tool > /dev/null
+          echo "✅ manifest.json is valid JSON"
+        else
+          echo "❌ manifest.json not found"
+          exit 1
+        fi
+        
+    - name: Validate package.json
+      run: |
+        if [ -f package.json ]; then
+          echo "✅ package.json found"
+          cat package.json | python -m json.tool > /dev/null
+          echo "✅ package.json is valid JSON"
+        else
+          echo "❌ package.json not found"
+          exit 1
+        fi
+        
+    - name: Check required files
+      run: |
+        files=("background.js" "content.js" "options.html" "options.js" "README.md" "LICENSE")
+        for file in "${files[@]}"; do
+          if [ -f "$file" ]; then
+            echo "✅ $file found"
+          else
+            echo "❌ $file not found"
+            exit 1
+          fi
+        done
+        
+    - name: Check icons directory
+      run: |
+        if [ -d "icons" ]; then
+          echo "✅ icons directory found"
+          icon_files=("icon16.png" "icon48.png" "icon128.png")
+          for icon in "${icon_files[@]}"; do
+            if [ -f "icons/$icon" ]; then
+              echo "✅ icons/$icon found"
+            else
+              echo "❌ icons/$icon not found"
+              exit 1
+            fi
+          done
+        else
+          echo "❌ icons directory not found"
+          exit 1
+        fi
+        
+    - name: Validate JavaScript syntax
+      run: |
+        # Check if JavaScript files have basic syntax validity
+        for js_file in *.js; do
+          if [ -f "$js_file" ]; then
+            echo "Checking $js_file..."
+            node -c "$js_file"
+            echo "✅ $js_file syntax is valid"
+          fi
+        done
+        
+    - name: Extension validation complete
+      run: echo "🎉 All validation checks passed!"
