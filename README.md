@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/b63c31c2-718c-42db-8cfd-393ba1dcadfc" alt="Screenshot">
+</p>
+
 # ✨ AI Text Rewriter Pro - Your Advanced Gemini-Powered Writing Assistant ✨
 
 **(Transform your writing with AI precision and style! 🚀)**
