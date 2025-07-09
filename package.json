@@ -66,5 +66,16 @@
   "funding": {
     "type": "individual",
     "url": "https://github.com/sponsors/SupratimRK"
+  },
+  "os": ["win32", "darwin", "linux"],
+  "cpu": ["x64", "arm64"],
+  "preferGlobal": false,
+  "private": false,
+  "browserslist": [
+    "Chrome >= 88"
+  ],
+  "config": {
+    "manifest_version": 3,
+    "target_browsers": ["chrome", "edge", "brave", "opera"]
   }
 }
