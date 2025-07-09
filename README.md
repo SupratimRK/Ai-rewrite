@@ -2,13 +2,26 @@
     <img src="https://github.com/user-attachments/assets/b63c31c2-718c-42db-8cfd-393ba1dcadfc" alt="Screenshot">
 </p>
 
-# ✨ AI Text Rewriter Pro - Your Advanced Gemini-Powered Writing Assistant ✨
+# ✨ AI Text Rewriter Pro - Advanced Chrome Extension for AI-Powered Writing ✨
 
-**(Transform your writing with AI precision and style! 🚀)**
+**(Transform your writing with Google Gemini AI precision and style! 🚀)**
 
-[![Version](https://img.shields.io/badge/Version-2.0-blue)](https://img.shields.io/badge/Version-2.0-blue) [![License](https://img.shields.io/badge/License-MIT-green)](https://img.shields.io/badge/License-MIT-green) [![Coffee](https://img.shields.io/badge/Made%20with%20☕-Chai-orange)](https://img.shields.io/badge/Made%20with%20☕-Chai-orange)
+[![Version](https://img.shields.io/badge/Version-2.1.1-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-Google%20Gemini-red)](https://ai.google.dev/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
 
-**AI Text Rewriter Pro** is a comprehensive Chrome extension that transforms your writing using Google's powerful Gemini AI. Whether you need to sound more professional, creative, or just fix grammar, this extension has you covered with **17 built-in modes**, **custom prompts**, **undo functionality**, and much more!
+**AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using Google's advanced Gemini AI models. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **17+ built-in rewriting modes**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
+
+## 🎯 Quick Start Guide
+
+1. **Install**: [Download from Chrome Web Store](https://chrome.google.com/webstore) (coming soon) or load unpacked
+2. **Setup**: Add your Google Gemini API key in extension settings
+3. **Use**: Select text on any website → Right-click → Choose AI rewriting mode
+4. **Enjoy**: Watch your writing transform with professional AI assistance!
+
+## 🔍 Keywords & Search Terms
+
+**Chrome Extension AI Writing Tools** | **Google Gemini Text Rewriter** | **AI Grammar Checker** | **Professional Writing Assistant** | **Content Creation Tools** | **Text Improvement Software** | **AI-Powered Editor** | **Writing Enhancement Extension** | **Productivity Tools for Writers** | **Automated Content Editing**
+
+---
 
 Ever stared at a sentence you wrote and thought, "Wow, I sound like a bored robot trying to order pizza"? 🤖🍕 This extension is your secret weapon! It uses the mighty **Google Gemini AI** (multiple models available, from `gemini-1.5-flash` to `gemini-2.0-flash-lite`) to magically rewrite your text directly in input fields and text areas across the web.
 
