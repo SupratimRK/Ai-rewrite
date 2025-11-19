@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
     "name": "AI Text Rewriter",
-    "version": "2.1.1",
-    "description": "AI-powered Chrome extension for text rewriting using Google Gemini AI. Professional writing assistant with 17+ modes, custom prompts, grammar checking, and instant text transformation.",
+    "version": "2.5.0",
+    "description": "AI-powered Chrome extension for text rewriting using Google Gemini AI. Professional writing assistant with 21+ modes, custom prompts, grammar checking, and instant text transformation.",
     "permissions": [
       "storage",      
       "contextMenus", 

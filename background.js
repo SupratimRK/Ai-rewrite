@@ -1,12 +1,10 @@
 // === ENHANCED CONFIGURATION ===
 const CONFIG = {
     API_ENDPOINTS: {
-        'gemini-2.5-flash': "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-        'gemini-2.5-flash-lite-preview': "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent",
-        'gemini-2.0-flash': "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-        'gemini-2.0-flash-lite': "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent"
+        'gemini-flash-lite-latest': "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+        'gemini-flash-latest': "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
     },
-    DEFAULT_MODEL: 'gemini-2.5-flash',
+    DEFAULT_MODEL: 'gemini-flash-lite-latest',
     MAX_TEXT_LENGTH: 8000,
     MIN_TEXT_LENGTH: 3,
     MAX_RETRIES: 3,
@@ -206,6 +204,9 @@ chrome.runtime.onInstalled.addListener(async () => {
     
     // Check API key and notify if needed
     await checkApiKeyStatus();
+    
+    // Verify keyboard shortcuts are registered
+    await verifyKeyboardShortcuts();
 });
 
 // === STARTUP HANDLER ===
@@ -404,6 +405,23 @@ async function checkApiKeyStatus() {
             resolve();
         });
     });
+}
+
+async function verifyKeyboardShortcuts() {
+    try {
+        const commands = await chrome.commands.getAll();
+        console.log("Registered keyboard shortcuts:", commands);
+        
+        const missingShortcuts = commands.filter(cmd => !cmd.shortcut);
+        if (missingShortcuts.length > 0) {
+            console.warn("Some keyboard shortcuts are not assigned:", missingShortcuts.map(c => c.name));
+            console.log("Users can configure shortcuts at chrome://extensions/shortcuts");
+        } else {
+            console.log("All keyboard shortcuts are properly registered");
+        }
+    } catch (error) {
+        console.error("Error verifying keyboard shortcuts:", error);
+    }
 }
 
 // Show notification when API key is not configured
@@ -904,7 +922,7 @@ async function callGeminiApiEnhanced(apiKey, text, modeInfo, settings) {
 // === ENHANCED PROMPT GENERATION ===
 
 async function generatePrompt(text, modeInfo, settings) {
-    const baseInstruction = `IMPORTANT: Respond with ONLY the final text result. No explanations, no markdown formatting, no bullet points, no preambles, no quotes around the result. Just the direct text output.`;
+    const baseInstruction = `IMPORTANT: Respond with ONLY the final text result. No explanations, no markdown formatting, no bullet points, no preambles, no quotes around the result. Just the direct text output. CRITICAL: Preserve the original language of the input text - if the input is in a specific language, respond in that same language.`;
 
     if (modeInfo.type === 'custom') {
         const customMode = settings.customModes[modeInfo.key];
@@ -1259,18 +1277,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // === KEYBOARD SHORTCUTS ===
 chrome.commands.onCommand.addListener(async (command) => {
+    console.log("Keyboard shortcut triggered:", command);
+    
     const settings = await getSettings();
+    console.log("Keyboard shortcuts enabled:", settings.enableKeyboardShortcuts);
     
     if (!settings.enableKeyboardShortcuts) {
+        console.log("Keyboard shortcuts are disabled in settings");
         return;
     }
 
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     
+    if (!tab) {
+        console.warn("No active tab found");
+        return;
+    }
+    
+    console.log("Active tab:", tab.url);
+    
     if (!isValidTab(tab)) {
+        console.warn("Cannot run on this tab (restricted URL):", tab.url);
+        notifyUser(tab.id, "❌ Cannot use shortcuts on this page", true);
         return;
     }
 
+    console.log("Executing command:", command);
+    
     switch (command) {
         case 'rewrite-humanize':
             await executeShortcutRewrite(tab, 'humanize');
@@ -1284,6 +1317,8 @@ chrome.commands.onCommand.addListener(async (command) => {
         case 'undo-rewrite':
             await handleUndo(tab.id);
             break;
+        default:
+            console.warn("Unknown command:", command);
     }
 });
 

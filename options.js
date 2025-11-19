@@ -121,7 +121,7 @@ async function loadAllSettings() {
         ], (result) => {
             currentSettings = {
                 geminiApiKey: result.geminiApiKey || '',
-                selectedModel: result.selectedModel || 'gemini-2.5-flash',
+                selectedModel: result.selectedModel || 'gemini-flash-lite-latest',
                 customModes: result.customModes || {},
                 enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
                 maxTextLength: result.maxTextLength || 8000,
@@ -304,12 +304,10 @@ async function testApiConnection() {
 
 function getApiEndpoint(model) {
     const endpoints = {
-        'gemini-2.5-flash': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-        'gemini-2.5-flash-lite-preview': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent',
-        'gemini-2.0-flash': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-        'gemini-2.0-flash-lite': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent'
+        'gemini-flash-lite-latest': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent',
+        'gemini-flash-latest': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent'
     };
-    return endpoints[model] || endpoints['gemini-2.5-flash'];
+    return endpoints[model] || endpoints['gemini-flash-lite-latest'];
 }
 
 // === MODES MANAGEMENT ===
@@ -570,7 +568,7 @@ async function clearUsageStats() {
 async function exportSettings() {
     try {
         const exportData = {
-            version: '2.0',
+            version: '2.5.0',
             timestamp: new Date().toISOString(),
             settings: currentSettings,
             stats: currentStats
