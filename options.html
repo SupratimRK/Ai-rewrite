@@ -921,7 +921,7 @@
     <div class="container">
         <div class="header">
             <h1>🤖 AI Text Rewriter</h1>
-            <div class="subtitle">Powered by Google Gemini AI</div>
+            <div class="subtitle">Powered by OpenAI and Compatible APIs</div>
         </div>
 
         <div class="main-content">
@@ -938,20 +938,35 @@
             <div id="general" class="tab-content active">
                 <div class="section-title">API Configuration</div>
                 <div class="form-group">
-                    <label for="apiKey">🔑 Gemini API Key *</label>
-                    <input type="password" id="apiKey" name="apiKey" placeholder="Paste your Google AI Studio API Key here">
+                    <label for="apiKey">🔑 OpenAI API Key *</label>
+                    <input type="password" id="apiKey" name="apiKey" placeholder="Paste your OpenAI API Key here (sk-...)">
                     <div class="help-text">
-                        Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>
+                        Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI Platform</a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="baseUrl">🌐 Custom Base URL (Optional)</label>
+                    <input type="text" id="baseUrl" name="baseUrl" placeholder="https://api.openai.com/v1 (leave empty for default)">
+                    <div class="help-text">
+                        For OpenAI-compatible APIs (like LM Studio, Ollama, etc.), enter the base URL. Leave empty to use default OpenAI endpoint.
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="selectedModel">🧠 AI Model</label>
-                        <select id="selectedModel">
-                            <option value="gemini-flash-lite-latest">Flash Lite (Recommended)</option>
-                            <option value="gemini-flash-latest">Flash (Complex Rewrites)</option>
-                        </select>
+                        <input type="text" id="selectedModel" list="modelSuggestions" placeholder="amazon/nova-micro">
+                        <datalist id="modelSuggestions">
+                            <option value="amazon/nova-micro">amazon nova (Recommended)</option>
+                            <option value="openai/gpt-5-nano">GPT-5 Nano (More Capable)</option>
+                            <option value="mistral/mistral-nemo">Mistral Nemo (Affordable)</option>
+                            <option value="meta/llama-3.1-8b">LLAMA 3.1 8B (Affordable)</option>
+                            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Powerful)</option>
+                        </datalist>
+                        <div class="help-text">
+                            Enter any model name supported by your API endpoint. Type or select from suggestions.
+                        </div>
                     </div>
 
                     <div class="form-group">

@@ -4,40 +4,42 @@
 
 # ✨ AI Text Rewriter Pro - Advanced Chrome Extension for AI-Powered Writing ✨
 
-**(Transform your writing with Google Gemini AI precision and style! 🚀)**
+**(Transform your writing with OpenAI and OpenAI-compatible APIs! 🚀)**
 
-[![Version](https://img.shields.io/badge/Version-2.1.1-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-Google%20Gemini-red)](https://ai.google.dev/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
+[![Version](https://img.shields.io/badge/Version-2.1.1-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
 
-**AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using Google's advanced Gemini AI models. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **17+ built-in rewriting modes**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
+**AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using OpenAI and OpenAI-compatible APIs. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **21+ built-in rewriting modes**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
 
 ## 🎯 Quick Start Guide
 
 1. **Install**: [Download from Chrome Web Store](https://chrome.google.com/webstore) (coming soon) or load unpacked
-2. **Setup**: Add your Google Gemini API key in extension settings
+2. **Setup**: Add your OpenAI API key in extension settings (or use OpenAI-compatible API endpoint)
 3. **Use**: Select text on any website → Right-click → Choose AI rewriting mode
 4. **Enjoy**: Watch your writing transform with professional AI assistance!
 
 ## 🔍 Keywords & Search Terms
 
-**Chrome Extension AI Writing Tools** | **Google Gemini Text Rewriter** | **AI Grammar Checker** | **Professional Writing Assistant** | **Content Creation Tools** | **Text Improvement Software** | **AI-Powered Editor** | **Writing Enhancement Extension** | **Productivity Tools for Writers** | **Automated Content Editing**
+**Chrome Extension AI Writing Tools** | **OpenAI Text Rewriter** | **AI Grammar Checker** | **Professional Writing Assistant** | **Content Creation Tools** | **Text Improvement Software** | **AI-Powered Editor** | **Writing Enhancement Extension** | **Productivity Tools for Writers** | **Automated Content Editing**
 
 ---
 
-Ever stared at a sentence you wrote and thought, "Wow, I sound like a bored robot trying to order pizza"? 🤖🍕 This extension is your secret weapon! It uses the mighty **Google Gemini AI** (multiple models available, from `gemini-1.5-flash` to `gemini-2.0-flash-lite`) to magically rewrite your text directly in input fields and text areas across the web.
+Ever stared at a sentence you wrote and thought, "Wow, I sound like a bored robot trying to order pizza"? 🤖🍕 This extension is your secret weapon! It uses **OpenAI** (GPT-4o, GPT-4o-mini, or any OpenAI-compatible API like LM Studio, Ollama, etc.) to magically rewrite your text directly in input fields and text areas across the web.
 
 Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully better words. Sometimes... *interesting* words. It's AI, folks, it's a wild ride! 🎢
 
 ---
 
-## 🚀 What's New in Version 2.0! 🚀
+## 🚀 What's New in Version 2.5! 🚀
 
-- 🎭 **17 Professional Writing Modes** - From humanize to technical precision
+- 🔄 **OpenAI Integration** - Now uses OpenAI instead of Google Gemini
+- 🌐 **Custom API Endpoints** - Support for OpenAI-compatible APIs (LM Studio, Ollama, etc.)
+- 🎭 **21 Professional Writing Modes** - From humanize to technical precision
 - 🎨 **Custom Mode Creator** - Build your own rewriting styles
 - ↶ **Undo Functionality** - Instantly revert any rewrite
 - ⌨️ **Keyboard Shortcuts** - Lightning-fast rewriting with hotkeys
 - 📊 **Usage Analytics** - Track your writing improvements
 - 🌙 **Dark Mode** - Easy on the eyes, beautiful interface
-- 🔄 **Multiple AI Models** - Choose from latest Gemini models
+- 🔄 **Multiple AI Models** - Choose from GPT-4o, GPT-4o-mini, or GPT-3.5-turbo
 - 📤 **Settings Export/Import** - Backup and share your configurations
 - 🛡️ **Enhanced Error Handling** - Robust retry logic and user-friendly messages
 - 🎯 **Smart Text Validation** - Length limits and content filtering
@@ -47,16 +49,17 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 ## 🚀 Features (The Shiny Bits!) 🚀
 
 *   **🪄 Magic Wand Right-Click Action:** Select text in almost any editable field, right-click, and BOOM - rewrite options appear!
-*   **🎭 17 Professional Writing Modes:** From humanize to technical precision, empathetic to persuasive - we've got every tone covered!
+*   **🎭 21 Professional Writing Modes:** From humanize to technical precision, empathetic to persuasive - we've got every tone covered!
 *   **🎨 Custom Mode Creator:** Build your own rewriting styles with personalized prompts
 *   **↶ Undo Functionality:** Instantly revert any rewrite with a single click
 *   **⌨️ Keyboard Shortcuts:** Lightning-fast rewriting with customizable hotkeys
-*   **🧠 Powered by Google's Brainiac Gemini:** Multiple model options including `gemini-1.5-flash`, `gemini-1.5-pro`, and `gemini-2.0-flash-lite`
-*   **🔑 Secure API Key Storage:** Uses `chrome.storage.sync` to save your precious Gemini API key (syncs across your Chrome browsers!)
+*   **🧠 Powered by OpenAI:** Use GPT-4o, GPT-4o-mini, GPT-3.5-turbo, or any OpenAI-compatible API
+*   **🌐 Flexible API Support:** Works with OpenAI, LM Studio, Ollama, and other compatible endpoints
+*   **🔑 Secure API Key Storage:** Uses `chrome.storage.sync` to save your API key (syncs across your Chrome browsers!)
 *   **🎨 Modern Options Interface:** Dark mode support and intuitive settings management
 *   **📊 Usage Analytics:** Track your writing improvements and most-used modes
 *   **📢 Smart Notifications:** Helpful popups that tell you what's happening (and fade away gracefully)
-*   **🛡️ Enhanced Error Handling:** Robust retry logic and user-friendly error messages
+*   **🛡️ **Enhanced Error Handling:** Robust retry logic and user-friendly error messages
 
 ---
 
@@ -104,10 +107,11 @@ Alright, since this isn't (yet?) on the Chrome Web Store (because who has time f
 
 #### 1. Initial Setup
 1. Click the extension icon or right-click → "Settings"
-2. Get your free API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
-3. Paste your API key and test the connection
-4. Customize your settings (models, modes, shortcuts)
-5. Save and start rewriting!
+2. Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+3. (Optional) Add custom base URL for OpenAI-compatible APIs
+4. Paste your API key and test the connection
+5. Customize your settings (models, modes, shortcuts)
+6. Save and start rewriting!
 
 #### 2. Using the Extension
 **Right-Click Method:**
@@ -125,31 +129,45 @@ Alright, since this isn't (yet?) on the Chrome Web Store (because who has time f
 
 ## ⚙️ Configuration: The Golden Ticket 🔑
 
-Okay, here's the *slightly* annoying part. This extension needs **YOUR** Google Gemini API Key to actually talk to the AI. Think of it like needing a password to get into the cool AI club.
+Okay, here's the *slightly* annoying part. This extension needs **YOUR** OpenAI API Key to actually talk to the AI. Think of it like needing a password to get into the cool AI club.
 
-**Why?** Because accessing powerful AI models costs money (or at least has usage limits), and Google needs to know who's asking! This extension makes requests directly from *your* browser using *your* key.
+**Why?** Because accessing powerful AI models costs money (or at least has usage limits), and OpenAI needs to know who's asking! This extension makes requests directly from *your* browser using *your* key.
 
 **Where to Snag This Magical Key? 🤔**
 
-1.  Go to the **[Google AI Studio](https://aistudio.google.com/app/apikey)**. You'll likely need a Google account.
-2.  Click the button that says something like "Create API key".
-3.  It might ask you to create a project first. Just follow the prompts, nod wisely, and click "Agree" to things you probably won't read.
-4.  Eventually, it will reveal your **SECRET API KEY**. It's a long string of random letters and numbers.
-5.  **COPY THIS KEY!** 📋 Treat it like a password. Don't share it publicly!
+1.  Go to the **[OpenAI Platform](https://platform.openai.com/api-keys)**. You'll need an OpenAI account.
+2.  Click "Create new secret key" or "+Create new secret key".
+3.  Give your key a name (like "AI Rewriter Extension").
+4.  **COPY THIS KEY!** 📋 It starts with `sk-` and is a long string of random characters. Treat it like a password. Don't share it publicly!
+5.  **Important:** You won't be able to see this key again, so save it somewhere safe!
+
+**Alternative: OpenAI-Compatible APIs**
+
+You can also use other compatible APIs:
+- **Vercel AI Gateway**: Unified access to multiple AI providers - set base URL to `https://ai-gateway.vercel.sh/v1`
+  - Get your API key from [Vercel Dashboard](https://vercel.com/dashboard)
+  - Use models in `provider/model` format (e.g., `meta/llama-3.1-8b`, `anthropic/claude-sonnet-4.5`)
+  - Access OpenAI, Anthropic, Meta, Google, Amazon, and more through one endpoint!
+- **LM Studio**: Run models locally - set base URL to `http://localhost:1234/v1`
+- **Ollama**: Local models - typically `http://localhost:11434/v1`
+- **Any OpenAI-compatible endpoint**: Just set the custom base URL in settings
 
 **Plugging in the Power Cord 🔌**
 
 1.  Click the **AI Text Rewriter Pro extension icon** 🧩 in your Chrome toolbar. This should open the modern Options page.
     *   *Alternatively:* Go back to `chrome://extensions`, find the AI Text Rewriter Pro card, click "Details", then "Extension options". So many clicks!
-2.  You'll see a field labeled "**Gemini API Key**". It's a password field, so you won't see the key as you paste (oooooh, security! ✨).
+2.  You'll see a field labeled "**OpenAI API Key**". It's a password field, so you won't see the key as you paste (oooooh, security! ✨).
 3.  **PASTE** your copied API key into this box.
-4.  Click the glorious "**Save Key**" button. 💾
-5.  You *should* see a happy green message saying "API Key saved successfully!". ✅ If you see an angry red message, well... Houston, we have a problem. 🚀 (Did you paste the *whole* key?).
+4.  (Optional) If using a compatible API, enter the base URL in the "Custom Base URL" field.
+5.  Click "**Test API Key**" to verify your connection works. 🧪
+6.  Click the glorious "**Save Settings**" button. 💾
+7.  You *should* see a happy green message saying "Settings saved successfully!". ✅ If you see an angry red message, well... Houston, we have a problem. 🚀 (Did you paste the *whole* key?).
 
 **❗ IMPORTANT NOTE ABOUT YOUR KEY ❗**
 
-*   **Keep it Secret, Keep it Safe!** 🔒 Don't commit it to public code, don't paste it in random chat rooms. It's linked to *your* Google account.
-*   **Usage Might Cost $$$!** Google often has a free tier for their APIs, but heavy usage *could* potentially incur costs. Check their pricing! You are responsible for the usage associated with your key. Don't blame us if you rewrite War and Peace and get a bill. 💸
+*   **Keep it Secret, Keep it Safe!** 🔒 Don't commit it to public code, don't paste it in random chat rooms. It's linked to *your* OpenAI account.
+*   **Usage Costs $$$!** OpenAI charges for API usage based on tokens. Check their [pricing page](https://openai.com/api/pricing/)! You are responsible for the usage associated with your key. Start with GPT-4o-mini for cost-effective rewrites. Don't blame us if you rewrite War and Peace and get a bill. 💸
+*   **Free Alternative:** Use local models with LM Studio or Ollama for completely free, private AI rewriting!
 
 ---
 
@@ -220,10 +238,10 @@ Version 2.1.1 introduces comprehensive error handling to keep you informed every
 
 | Error Type | What It Means | How to Fix |
 |------------|---------------|------------|
-| 🔑 **"No API key configured"** | Missing Gemini API key | Click notification to open settings |
-| 🚫 **"Invalid API key format"** | Incorrect key format | Check your key starts with "AIza" |
-| ⚡ **"Rate limit reached"** | Too many requests | Wait a few minutes before trying again |
-| 🌐 **"Network error"** | Connection issues | Check your internet connection |
+| 🔑 **"No API key configured"** | Missing OpenAI API key | Click notification to open settings |
+| 🚫 **"Invalid API key format"** | Incorrect key format | Check your key starts with "sk-" or "sess-" |
+| ⚡ **"Rate limit reached"** | Too many requests | Wait a few minutes or upgrade your OpenAI plan |
+| 🌐 **"Network error"** | Connection issues | Check your internet connection or base URL |
 | 🛡️ **"Content blocked"** | Safety filters triggered | Try rephrasing your text |
 | ⏰ **"Request timeout"** | Server response delay | Try again with shorter text |
 

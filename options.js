@@ -109,7 +109,8 @@ function setupThemeToggle() {
 async function loadAllSettings() {
     return new Promise((resolve) => {
         chrome.storage.sync.get([
-            'geminiApiKey',
+            'openaiApiKey',
+            'openaiBaseUrl',
             'selectedModel',
             'customModes',
             'enabledModes',
@@ -120,8 +121,9 @@ async function loadAllSettings() {
             'darkMode'
         ], (result) => {
             currentSettings = {
-                geminiApiKey: result.geminiApiKey || '',
-                selectedModel: result.selectedModel || 'gemini-flash-lite-latest',
+                openaiApiKey: result.openaiApiKey || '',
+                openaiBaseUrl: result.openaiBaseUrl || '',
+                selectedModel: result.selectedModel || 'amazon/nova-micro',
                 customModes: result.customModes || {},
                 enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
                 maxTextLength: result.maxTextLength || 8000,
@@ -139,7 +141,8 @@ async function loadAllSettings() {
 
 function updateUIFromSettings() {
     // General tab
-    document.getElementById('apiKey').value = currentSettings.geminiApiKey;
+    document.getElementById('apiKey').value = currentSettings.openaiApiKey;
+    document.getElementById('baseUrl').value = currentSettings.openaiBaseUrl || '';
     document.getElementById('selectedModel').value = currentSettings.selectedModel;
     document.getElementById('maxTextLength').value = currentSettings.maxTextLength;
     document.getElementById('enableUndo').checked = currentSettings.enableUndo;
@@ -158,6 +161,16 @@ function setupEventListeners() {
     // General tab
     document.getElementById('saveGeneral').addEventListener('click', saveGeneralSettings);
     document.getElementById('testConnection').addEventListener('click', testApiConnection);
+    
+    // Vercel AI Gateway quick setup button
+    const setVercelBtn = document.getElementById('setVercelUrl');
+    if (setVercelBtn) {
+        setVercelBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('baseUrl').value = 'https://ai-gateway.vercel.sh/v1';
+            showStatus('✅ Vercel AI Gateway URL set! Remember to save your settings.', 'success');
+        });
+    }
 
     // Modes tab
     document.getElementById('saveModes').addEventListener('click', saveModeSettings);
@@ -202,20 +215,21 @@ function setupEventListeners() {
 // === GENERAL SETTINGS ===
 async function saveGeneralSettings() {
     const apiKey = document.getElementById('apiKey').value.trim();
+    const baseUrl = document.getElementById('baseUrl').value.trim();
     
     if (!apiKey) {
         showStatus('❌ API Key cannot be empty', 'error');
         return;
     }
 
-    // Validate API key format
-    if (!apiKey.startsWith('AIza') || apiKey.length < 35) {
-        showStatus('❌ Invalid API key format. Please check your Gemini API key.', 'error');
-        return;
+    // Validate API key format for OpenAI (keys typically start with 'sk-' or 'sess-')
+    if (!apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
+        showStatus('⚠️ Warning: OpenAI API keys typically start with "sk-". Double-check your key.', 'warning');
     }
 
     const settings = {
-        geminiApiKey: apiKey,
+        openaiApiKey: apiKey,
+        openaiBaseUrl: baseUrl,
         selectedModel: document.getElementById('selectedModel').value,
         maxTextLength: parseInt(document.getElementById('maxTextLength').value),
         enableUndo: document.getElementById('enableUndo').checked,
@@ -237,6 +251,7 @@ async function saveGeneralSettings() {
 
 async function testApiConnection() {
     const apiKey = document.getElementById('apiKey').value.trim();
+    const baseUrl = document.getElementById('baseUrl').value.trim();
     
     if (!apiKey) {
         showStatus('❌ Please enter an API key first', 'error');
@@ -244,9 +259,8 @@ async function testApiConnection() {
     }
 
     // Validate API key format before testing
-    if (!apiKey.startsWith('AIza') || apiKey.length < 35) {
-        showStatus('❌ Invalid API key format. Please check your Gemini API key.', 'error');
-        return;
+    if (!apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
+        showStatus('⚠️ Warning: OpenAI API keys typically start with "sk-". Testing anyway...', 'warning');
     }
 
     const testButton = document.getElementById('testConnection');
@@ -255,14 +269,25 @@ async function testApiConnection() {
 
     try {
         const model = document.getElementById('selectedModel').value;
-        const endpoint = getApiEndpoint(model);
         
-        const response = await fetch(`${endpoint}?key=${apiKey}`, {
+        // Use custom base URL if provided, otherwise use default OpenAI endpoint
+        const endpoint = baseUrl && baseUrl.trim() !== '' 
+            ? `${baseUrl.replace(/\/$/, '')}/chat/completions`
+            : 'https://api.openai.com/v1/chat/completions';
+        
+        const response = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: 'Hello' }] }],
-                generationConfig: { maxOutputTokens: 10 }
+                model: model,
+                messages: [
+                    { role: 'system', content: 'You are a helpful assistant.' },
+                    { role: 'user', content: 'Say "test successful"' }
+                ],
+                max_tokens: 10
             })
         });
 
@@ -300,14 +325,6 @@ async function testApiConnection() {
         testButton.disabled = false;
         testButton.textContent = '🧪 Test API Key';
     }
-}
-
-function getApiEndpoint(model) {
-    const endpoints = {
-        'gemini-flash-lite-latest': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent',
-        'gemini-flash-latest': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent'
-    };
-    return endpoints[model] || endpoints['gemini-flash-lite-latest'];
 }
 
 // === MODES MANAGEMENT ===

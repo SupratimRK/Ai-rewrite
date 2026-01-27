@@ -1,10 +1,12 @@
 // === ENHANCED CONFIGURATION ===
 const CONFIG = {
     API_ENDPOINTS: {
-        'gemini-flash-lite-latest': "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
-        'gemini-flash-latest': "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
+        'gpt-4o-mini': "https://api.openai.com/v1/chat/completions",
+        'gpt-4o': "https://api.openai.com/v1/chat/completions",
+        'gpt-3.5-turbo': "https://api.openai.com/v1/chat/completions"
     },
-    DEFAULT_MODEL: 'gemini-flash-lite-latest',
+    DEFAULT_MODEL: 'amazon/nova-micro',
+    DEFAULT_ENDPOINT: "https://api.openai.com/v1/chat/completions",
     MAX_TEXT_LENGTH: 8000,
     MIN_TEXT_LENGTH: 3,
     MAX_RETRIES: 3,
@@ -222,7 +224,8 @@ chrome.runtime.onStartup.addListener(async () => {
 async function initializeDefaultSettings() {
     return new Promise((resolve) => {
         chrome.storage.sync.get([
-            'geminiApiKey', 
+            'openaiApiKey',
+            'openaiBaseUrl',
             'selectedModel', 
             'customModes', 
             'enabledModes',
@@ -394,13 +397,13 @@ async function setupContextMenus() {
 
 async function checkApiKeyStatus() {
     return new Promise((resolve) => {
-        chrome.storage.sync.get(['geminiApiKey'], (result) => {
-            if (!result.geminiApiKey) {
-                console.log("Gemini API Key not found. User needs to configure.");
+        chrome.storage.sync.get(['openaiApiKey'], (result) => {
+            if (!result.openaiApiKey) {
+                console.log("OpenAI API Key not found. User needs to configure.");
                 // Show notification to configure API key
                 showApiKeyNotification();
             } else {
-                console.log("Gemini API Key found.");
+                console.log("OpenAI API Key found.");
             }
             resolve();
         });
@@ -430,7 +433,7 @@ function showApiKeyNotification() {
         type: 'basic',
         iconUrl: 'icons/icon48.png',
         title: 'AI Text Rewriter - Setup Required',
-        message: 'Please configure your Gemini API key in the extension settings to start rewriting text.',
+        message: 'Please configure your OpenAI API key in the extension settings to start rewriting text.',
         buttons: [
             { title: 'Open Settings' },
             { title: 'Dismiss' }
@@ -510,7 +513,8 @@ function parseModeFromMenuId(menuItemId) {
 async function getSettings() {
     return new Promise((resolve) => {
         chrome.storage.sync.get([
-            'geminiApiKey',
+            'openaiApiKey',
+            'openaiBaseUrl',
             'selectedModel',
             'customModes',
             'enabledModes',
@@ -520,7 +524,8 @@ async function getSettings() {
             'enableKeyboardShortcuts'
         ], (result) => {
             resolve({
-                geminiApiKey: result.geminiApiKey || '',
+                openaiApiKey: result.openaiApiKey || '',
+                openaiBaseUrl: result.openaiBaseUrl || '',
                 selectedModel: result.selectedModel || CONFIG.DEFAULT_MODEL,
                 customModes: result.customModes || {},
                 enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
@@ -734,7 +739,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 async function performRewrite(tab, info, modeInfo, settings) {
     try {
         // Validate API key first
-        if (!settings.geminiApiKey || settings.geminiApiKey.trim() === '') {
+        if (!settings.openaiApiKey || settings.openaiApiKey.trim() === '') {
             notifyUser(tab.id, "❌ No API key configured - Click to open settings", true, 6000);
             // Show setup notification
             showApiKeyNotification();
@@ -754,8 +759,9 @@ async function performRewrite(tab, info, modeInfo, settings) {
         }
 
         // Call API
-        const resultText = await callGeminiApiWithRetry(
-            settings.geminiApiKey,
+        const resultText = await callOpenAIApiWithRetry(
+            settings.openaiApiKey,
+            settings.openaiBaseUrl,
             info.selectionText,
             modeInfo,
             settings
@@ -789,15 +795,15 @@ async function performRewrite(tab, info, modeInfo, settings) {
 
 // === ENHANCED API FUNCTIONS ===
 
-async function callGeminiApiWithRetry(apiKey, text, modeInfo, settings) {
+async function callOpenAIApiWithRetry(apiKey, baseUrl, text, modeInfo, settings) {
     // Validate API key
     if (!apiKey || apiKey.trim() === '') {
-        throw new Error('API key not configured - Please add your Gemini API key in settings');
+        throw new Error('API key not configured - Please add your OpenAI API key in settings');
     }
     
-    // Basic API key format validation
-    if (!apiKey.startsWith('AIza') || apiKey.length < 35) {
-        throw new Error('Invalid API key format - Please check your Gemini API key in settings');
+    // Basic API key format validation (OpenAI keys typically start with 'sk-')
+    if (!apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
+        console.warn('API key format might be incorrect - OpenAI keys typically start with sk-');
     }
     
     let lastError;
@@ -806,7 +812,7 @@ async function callGeminiApiWithRetry(apiKey, text, modeInfo, settings) {
         try {
             console.log(`API call attempt ${attempt}/${CONFIG.MAX_RETRIES}`);
             
-            const result = await callGeminiApiEnhanced(apiKey, text, modeInfo, settings);
+            const result = await callOpenAIApi(apiKey, baseUrl, text, modeInfo, settings);
             if (result && result.trim()) {
                 return result;
             }
@@ -833,56 +839,45 @@ async function callGeminiApiWithRetry(apiKey, text, modeInfo, settings) {
     throw lastError;
 }
 
-async function callGeminiApiEnhanced(apiKey, text, modeInfo, settings) {
+async function callOpenAIApi(apiKey, baseUrl, text, modeInfo, settings) {
     const model = settings.selectedModel || CONFIG.DEFAULT_MODEL;
-    const endpoint = CONFIG.API_ENDPOINTS[model];
     
-    if (!endpoint) {
-        throw new Error(`Unsupported model: ${model}`);
-    }
+    // Use custom base URL if provided, otherwise use default OpenAI endpoint
+    // This allows any model name when using custom endpoints
+    const endpoint = baseUrl && baseUrl.trim() !== '' 
+        ? `${baseUrl.replace(/\/$/, '')}/chat/completions`
+        : (CONFIG.API_ENDPOINTS[model] || CONFIG.DEFAULT_ENDPOINT);
 
     const prompt = await generatePrompt(text, modeInfo, settings);
     
     const requestBody = {
-        contents: [{
-            parts: [{ text: prompt }]
-        }],
-        generationConfig: {
-            maxOutputTokens: 4096,
-            temperature: getTemperatureForMode(modeInfo.key),
-            topP: 0.8,
-            topK: 40
-        },
-        safetySettings: [
+        model: model,
+        messages: [
             {
-                category: "HARM_CATEGORY_HARASSMENT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                role: "system",
+                content: "You are a helpful AI assistant that rewrites text according to specific instructions. Always respond with only the rewritten text, no explanations or additional formatting."
             },
             {
-                category: "HARM_CATEGORY_HATE_SPEECH", 
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                role: "user",
+                content: prompt
             }
-        ]
+        ],
+        temperature: getTemperatureForMode(modeInfo.key),
+        max_tokens: 4096,
+        top_p: 0.8
     };
 
-    console.log(`Sending request to Gemini (${model})...`);
+    console.log(`Sending request to OpenAI (${model})...`);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
 
     try {
-        const response = await fetch(`${endpoint}?key=${apiKey}`, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify(requestBody),
             signal: controller.signal
@@ -903,8 +898,8 @@ async function callGeminiApiEnhanced(apiKey, text, modeInfo, settings) {
 
         const data = await response.json();
         
-        if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-            let resultText = data.candidates[0].content.parts[0].text.trim();
+        if (data.choices?.[0]?.message?.content) {
+            let resultText = data.choices[0].message.content.trim();
             return postProcessResult(resultText, modeInfo.key);
         } else {
             throw new Error("Invalid API response structure");
@@ -1328,7 +1323,7 @@ async function executeShortcutRewrite(tab, mode) {
         const settings = await getSettings();
         
         // Validate API key first
-        if (!settings.geminiApiKey || settings.geminiApiKey.trim() === '') {
+        if (!settings.openaiApiKey || settings.openaiApiKey.trim() === '') {
             notifyUser(tab.id, "❌ No API key configured - Click to open settings", true, 6000);
             showApiKeyNotification();
             return;
@@ -1392,8 +1387,9 @@ async function executeShortcutRewrite(tab, mode) {
         }
 
         // Call API
-        const resultText = await callGeminiApiWithRetry(
-            settings.geminiApiKey,
+        const resultText = await callOpenAIApiWithRetry(
+            settings.openaiApiKey,
+            settings.openaiBaseUrl,
             result.selectedText,
             modeInfo,
             settings
