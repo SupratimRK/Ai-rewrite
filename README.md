@@ -6,7 +6,7 @@
 
 **(Transform your writing with OpenAI and OpenAI-compatible APIs! 🚀)**
 
-[![Version](https://img.shields.io/badge/Version-2.1.1-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
+[![Version](https://img.shields.io/badge/Version-2.5.1-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
 
 **AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using OpenAI and OpenAI-compatible APIs. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **21+ built-in rewriting modes**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
 
@@ -29,9 +29,11 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 
 ---
 
-## 🚀 What's New in Version 2.5! 🚀
+## 🚀 What's New in Version 2.5.1! 🚀
 
-- 🔄 **OpenAI Integration** - Now uses OpenAI instead of Google Gemini
+- � **Fixed Preview Mode** - Text injection now works reliably when clicking "Insert"
+- ✨ **Improved Highlighting** - Input/textarea fields now get a golden outline highlight
+- �🔄 **OpenAI Integration** - Uses OpenAI instead of Google Gemini (since v2.5.0)
 - 🌐 **Custom API Endpoints** - Support for OpenAI-compatible APIs (LM Studio, Ollama, etc.)
 - 🎭 **21 Professional Writing Modes** - From humanize to technical precision
 - 🎨 **Custom Mode Creator** - Build your own rewriting styles
@@ -337,8 +339,8 @@ Yeah, sometimes technology just says "NOPE". 🙅‍♂️ Here's a comprehensiv
 *   **Check Console (Page):** On the webpage where it's failing, right-click anywhere, select "Inspect", and go to the "Console" tab. Try using the extension again. Any **RED ERRORS** there?
 
 **"API Key not working"**
-- Verify key is correctly copied from Google AI Studio
-- Check if your Google account has API access enabled
+- Verify key is correctly copied from the AI provider
+- Check if your account has API access enabled
 - Test connection in Settings → General → Test API Key
 
 **🚫 Error: `Cannot access chrome:// URL`**
@@ -364,14 +366,14 @@ Yeah, sometimes technology just says "NOPE". 🙅‍♂️ Here's a comprehensiv
 **"Too many requests"**
 - Built-in rate limiting prevents API overuse
 - Wait 60 seconds and try again
-- Consider upgrading your Google AI Studio plan for higher limits
+- Consider upgrading your plan for higher limits
 
 **📉 API Errors (4xx/5xx Status)**
 *   `400 Bad Request`: Often means the model name is wrong or the request format is broken. Try switching AI models in settings.
-*   `401 Unauthorized` / `403 Forbidden`: Almost always an **API Key problem**. Is it correct? Is it enabled? Does your Google Cloud project have the API enabled?
+*   `401 Unauthorized` / `403 Forbidden`: Almost always an **API Key problem**. Is it correct? Is it enabled? Does your project have the API enabled?
 *   `404 Not Found`: The API endpoint URL might be wrong.
-*   `429 Too Many Requests`: You might be hitting rate limits on the free tier. Slow down!
-*   `500 Internal Server Error`: Google's servers are having a hiccup. Try again later. ☕
+*   `429 Too Many Requests`: You might be hitting rate limits. Slow down!
+*   `500 Internal Server Error`: The servers are having a hiccup. Try again later. ☕
 
 ### Getting Help
 1. Check the browser console (F12) for detailed error messages
@@ -384,7 +386,7 @@ Yeah, sometimes technology just says "NOPE". 🙅‍♂️ Here's a comprehensiv
 ## 🔐 Privacy & Security
 
 - **Your API Key**: Stored locally in your browser, never shared
-- **Your Text**: Sent directly to Google's servers, not stored by us
+- **Your Text**: Sent directly to the AI provider's servers, not stored by us
 - **Usage Data**: Optional analytics stored locally only
 - **No External Tracking**: No third-party analytics or tracking
 - **Open Source**: Inspect the code to verify privacy practices
@@ -449,7 +451,7 @@ Basically, this means you can do almost whatever you want with this code (use it
 - **Chrome Extension APIs** - Making seamless integration possible
 - **Open Source Community** - Inspiration and best practices
 - **Beta Testers** - Feedback that shaped this extension
-- Special thanks to the Google Gemini team for their amazing AI technology!
+- Special thanks to the Gemini, OpenAI and Anthropic team for their amazing AI technology!
 - Thanks to the Chrome extension development community for all the resources and inspiration! 🙌
 - And a big shoutout to you, the user! Thanks for trying out this extension and making the internet a slightly more interesting place! 🌍✨
 

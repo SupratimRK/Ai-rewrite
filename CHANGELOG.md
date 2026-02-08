@@ -5,6 +5,41 @@ All notable changes to the AI Text Rewriter Pro extension will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2026-02-08
+
+### Fixed
+- Fixed preview mode text injection failing when clicking "Insert" button
+- Fixed selection highlighting not working for input/textarea elements
+- Improved selection state preservation for reliable text replacement
+- Added CSS-based highlighting (golden outline) for input/textarea fields
+
+### Enhanced
+- Better error messages when text replacement fails
+- Improved cleanup of highlight styles after preview dismiss
+
+---
+
+## [2.5.0] - 2026-02-07
+
+### Changed
+- **Major API Migration**: Switched from Google Gemini to OpenAI APIs
+- Support for OpenAI-compatible endpoints (LM Studio, Ollama, Vercel AI Gateway)
+
+### Added
+- 21 Professional Writing Modes (up from 17)
+- Custom API base URL support for third-party providers
+- Enhanced model selection (GPT-4o, GPT-4o-mini, GPT-3.5-turbo)
+- Preview mode with popover UI for reviewing AI suggestions
+- Improved keyboard shortcut verification
+
+### Enhanced
+- Modernized options page with flat, contemporary design
+- Better prompt engineering for more accurate rewrites
+- Improved error handling and retry logic
+- Updated documentation for OpenAI setup
+
+---
+
 ## [2.1.1] - 2025-01-09
 
 ### Added

@@ -1,67 +1,69 @@
 {
-    "manifest_version": 3,
-    "name": "AI Text Rewriter",
-    "version": "2.5.0",
-    "description": "AI-powered Chrome extension for text rewriting using OpenAI or OpenAI-compatible APIs. Professional writing assistant with 21+ modes, custom prompts, grammar checking, and instant text transformation.",
-    "permissions": [
-      "storage",      
-      "contextMenus", 
-      "scripting",    
-      "activeTab",
-      "notifications"
-    ],
-    "host_permissions": [
-      "<all_urls>"    
-    ],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"],
-        "run_at": "document_start"
-      }
-    ],
-    "options_page": "options.html",
-    "action": {
-      "default_title": "AI Text Rewriter Settings",
-      "default_popup": "options.html" 
-    },
-    "icons": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    },
-    "commands": {
-      "rewrite-humanize": {
-        "suggested_key": {
-          "default": "Ctrl+Shift+H"
-        },
-        "description": "Rewrite selected text to be more human-like (Ctrl+Shift+H)"
-      },
-      "rewrite-professional": {
-        "suggested_key": {
-          "default": "Ctrl+Shift+P"
-        },
-        "description": "Rewrite selected text in professional tone (Ctrl+Shift+P)"
-      },
-      "rewrite-grammar": {
-        "suggested_key": {
-          "default": "Ctrl+Shift+G"
-        },
-        "description": "Fix grammar and spelling in selected text (Ctrl+Shift+G)"
-      },
-      "undo-rewrite": {
-        "suggested_key": {
-          "default": "Ctrl+Shift+Z"
-        },
-        "description": "Undo last rewrite (Ctrl+Shift+Z)"
-      }
-    },
-    "content_security_policy": {
-      "extension_pages": "script-src 'self'; object-src 'self'"
+  "manifest_version": 3,
+  "name": "AI Text Rewriter",
+  "version": "2.5.1",
+  "description": "AI-powered Chrome extension for text rewriting using OpenAI or OpenAI-compatible APIs. Professional writing assistant with 21+ modes, custom prompts, grammar checking, and instant text transformation.",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "scripting",
+    "activeTab",
+    "notifications"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
     }
+  ],
+  "options_page": "options.html",
+  "action": {
+    "default_title": "AI Text Rewriter Settings",
+    "default_popup": "options.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "rewrite-humanize": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+H"
+      },
+      "description": "Rewrite selected text to be more human-like (Ctrl+Shift+H)"
+    },
+    "rewrite-professional": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P"
+      },
+      "description": "Rewrite selected text in professional tone (Ctrl+Shift+P)"
+    },
+    "rewrite-grammar": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+G"
+      },
+      "description": "Fix grammar and spelling in selected text (Ctrl+Shift+G)"
+    },
+    "undo-rewrite": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Z"
+      },
+      "description": "Undo last rewrite (Ctrl+Shift+Z)"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
-  
-  
+}

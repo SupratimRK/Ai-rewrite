@@ -231,6 +231,7 @@ async function initializeDefaultSettings() {
             'enabledModes',
             'maxTextLength',
             'enableUndo',
+            'enablePreviewMode',
             'enableUsageTracking',
             'enableKeyboardShortcuts',
             'darkMode'
@@ -241,6 +242,7 @@ async function initializeDefaultSettings() {
                 enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
                 maxTextLength: result.maxTextLength || CONFIG.MAX_TEXT_LENGTH,
                 enableUndo: result.enableUndo !== false,
+                enablePreviewMode: result.enablePreviewMode !== false,
                 enableUsageTracking: result.enableUsageTracking !== false,
                 enableKeyboardShortcuts: result.enableKeyboardShortcuts !== false,
                 darkMode: result.darkMode || false
@@ -520,6 +522,7 @@ async function getSettings() {
             'enabledModes',
             'maxTextLength',
             'enableUndo',
+            'enablePreviewMode',
             'enableUsageTracking',
             'enableKeyboardShortcuts'
         ], (result) => {
@@ -531,6 +534,7 @@ async function getSettings() {
                 enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
                 maxTextLength: result.maxTextLength || CONFIG.MAX_TEXT_LENGTH,
                 enableUndo: result.enableUndo !== false,
+                enablePreviewMode: result.enablePreviewMode !== false,
                 enableUsageTracking: result.enableUsageTracking !== false,
                 enableKeyboardShortcuts: result.enableKeyboardShortcuts !== false
             });
@@ -768,13 +772,20 @@ async function performRewrite(tab, info, modeInfo, settings) {
         );
 
         if (resultText && resultText.trim()) {
-            await injectTextIntoPage(tab.id, info.frameId || 0, resultText);
-            
-            if (settings.enableUsageTracking) {
-                await trackUsage(modeInfo.key, info.selectionText.length, resultText.length);
+            // Check if preview mode is enabled
+            if (settings.enablePreviewMode) {
+                // Show preview popover instead of directly injecting
+                await showPreviewPopover(tab.id, info.frameId || 0, info.selectionText, resultText, modeInfo.key, settings);
+            } else {
+                // Direct injection (old behavior)
+                await injectTextIntoPage(tab.id, info.frameId || 0, resultText);
+                
+                if (settings.enableUsageTracking) {
+                    await trackUsage(modeInfo.key, info.selectionText.length, resultText.length);
+                }
+                
+                notifyUser(tab.id, "✅ Text rewritten successfully!", false, 2000);
             }
-            
-            notifyUser(tab.id, "✅ Text rewritten successfully!", false, 2000);
         } else {
             throw new Error("Empty response from AI");
         }
@@ -1087,6 +1098,130 @@ async function injectTextIntoPage(tabId, frameId, textToInject) {
     }
 }
 
+// New function to inject text using stored selection state (for preview mode)
+async function injectTextWithSelectionState(tabId, frameId, textToInject, selectionState) {
+    console.log("Injecting text with selection state into tab:", tabId, "State:", selectionState);
+    
+    try {
+        const results = await chrome.scripting.executeScript({
+            target: { tabId: tabId, frameIds: frameId ? [frameId] : undefined },
+            func: replaceTextWithStoredSelection,
+            args: [textToInject, selectionState],
+        });
+
+        if (results[0]?.result?.success) {
+            console.log("Text injection with selection state successful");
+            notifyUser(tabId, "✅ Text replaced successfully!", false, 2000);
+        } else {
+            console.warn("Text injection failed:", results[0]?.result?.reason);
+            throw new Error(results[0]?.result?.reason || "Unknown injection error");
+        }
+    } catch (error) {
+        console.error("Failed to inject script with selection state:", error);
+        notifyUser(tabId, "❌ Failed to replace text. The selection may have changed.", true);
+    }
+}
+
+// Function that runs in page context to replace text using stored selection state
+function replaceTextWithStoredSelection(replacementText, selectionState) {
+    if (!selectionState) {
+        return { success: false, reason: "No selection state provided" };
+    }
+    
+    try {
+        // Find the element using the stored ID
+        const element = document.querySelector(`[data-ai-rewriter-id="${selectionState.elementId}"]`);
+        
+        if (!element) {
+            return { success: false, reason: "Could not find the original element" };
+        }
+        
+        if (selectionState.type === 'input') {
+            // For input/textarea elements, use the stored selection positions
+            const currentValue = element.value;
+            
+            // Verify the content hasn't changed dramatically
+            if (selectionState.value && currentValue !== selectionState.value) {
+                console.warn('Element value changed, but proceeding with replacement');
+            }
+            
+            const beforeText = currentValue.substring(0, selectionState.selectionStart);
+            const afterText = currentValue.substring(selectionState.selectionEnd);
+            element.value = beforeText + replacementText + afterText;
+            
+            // Set cursor position at end of replaced text
+            const newPosition = selectionState.selectionStart + replacementText.length;
+            element.focus();
+            element.setSelectionRange(newPosition, newPosition);
+            
+            // Trigger events
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            return { success: true, reason: "Text replaced in input/textarea" };
+        } 
+        else if (selectionState.type === 'contentEditable') {
+            // For contentEditable, we need to find and replace the selected text
+            element.focus();
+            
+            // Try to find the text in the element and replace it
+            const textContent = element.textContent || element.innerText;
+            const selectedText = selectionState.selectedText;
+            
+            if (selectedText && textContent.includes(selectedText)) {
+                // Use document.execCommand for contentEditable (most reliable)
+                // First, try to recreate the selection
+                const selection = window.getSelection();
+                const range = document.createRange();
+                
+                // Find the text node containing our text
+                const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+                let found = false;
+                
+                while (walker.nextNode()) {
+                    const node = walker.currentNode;
+                    const idx = node.textContent.indexOf(selectedText);
+                    if (idx >= 0) {
+                        range.setStart(node, idx);
+                        range.setEnd(node, idx + selectedText.length);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (found) {
+                    // Delete and insert
+                    range.deleteContents();
+                    const textNode = document.createTextNode(replacementText);
+                    range.insertNode(textNode);
+                    
+                    // Move cursor to end
+                    range.setStartAfter(textNode);
+                    range.setEndAfter(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    // Trigger events
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                    
+                    return { success: true, reason: "Text replaced in contentEditable" };
+                }
+            }
+            
+            return { success: false, reason: "Could not find selected text in contentEditable element" };
+        }
+        
+        return { success: false, reason: "Unknown selection type" };
+        
+    } catch (error) {
+        console.error("Error replacing text with stored selection:", error);
+        return { success: false, reason: error.message };
+    }
+}
+
 // Enhanced text replacement function that runs in the page context
 function replaceSelectedTextEnhanced(replacementText) {
     const activeElement = document.activeElement;
@@ -1263,10 +1398,476 @@ function notifyUser(tabId, message, isError = false, duration = 4000) {
     });
 }
 
+// === PREVIEW POPOVER SYSTEM ===
+// Store pending preview data for when user clicks Insert
+let pendingPreviews = new Map();
+
+async function showPreviewPopover(tabId, frameId, originalText, previewText, modeKey, settings) {
+    console.log("Showing preview popover in tab:", tabId);
+    
+    // Generate unique preview ID
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Store preview data for later use
+    pendingPreviews.set(previewId, {
+        tabId,
+        frameId,
+        originalText,
+        previewText,
+        modeKey,
+        settings,
+        timestamp: Date.now()
+    });
+    
+    // Clean up old previews (older than 5 minutes)
+    const fiveMinutesAgo = Date.now() - 300000;
+    for (const [id, data] of pendingPreviews.entries()) {
+        if (data.timestamp < fiveMinutesAgo) {
+            pendingPreviews.delete(id);
+        }
+    }
+    
+    try {
+        // First, capture the current selection state before showing popover
+        const selectionResult = await chrome.scripting.executeScript({
+            target: { tabId: tabId, frameIds: frameId ? [frameId] : undefined },
+            func: captureSelectionState
+        });
+        
+        const selectionState = selectionResult[0]?.result;
+        if (selectionState) {
+            // Store selection state with the preview data
+            const previewData = pendingPreviews.get(previewId);
+            previewData.selectionState = selectionState;
+            pendingPreviews.set(previewId, previewData);
+        }
+        
+        await chrome.scripting.executeScript({
+            target: { tabId: tabId, frameIds: frameId ? [frameId] : undefined },
+            func: createPreviewPopoverUI,
+            args: [previewId, previewText, originalText]
+        });
+    } catch (error) {
+        console.error("Failed to show preview popover:", error);
+        notifyUser(tabId, "❌ Failed to show preview. Try clicking in the text field first.", true);
+    }
+}
+
+// Function to capture the current selection state before showing popover
+function captureSelectionState() {
+    const activeElement = document.activeElement;
+    const selection = window.getSelection();
+    
+    if (!activeElement) {
+        return null;
+    }
+    
+    // For textarea and input elements
+    if (activeElement.tagName === 'TEXTAREA' || 
+        (activeElement.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeElement.type))) {
+        
+        const start = activeElement.selectionStart;
+        const end = activeElement.selectionEnd;
+        
+        if (start !== end) {
+            // Generate a unique ID for referring to this element
+            if (!activeElement.dataset.aiRewriterId) {
+                activeElement.dataset.aiRewriterId = 'element_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            return {
+                type: 'input',
+                elementId: activeElement.dataset.aiRewriterId,
+                tagName: activeElement.tagName,
+                selectionStart: start,
+                selectionEnd: end,
+                value: activeElement.value
+            };
+        }
+    }
+    // For contentEditable elements
+    else if (activeElement.isContentEditable && selection.rangeCount > 0 && !selection.isCollapsed) {
+        // Generate a unique ID for referring to this element
+        if (!activeElement.dataset.aiRewriterId) {
+            activeElement.dataset.aiRewriterId = 'element_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        const range = selection.getRangeAt(0);
+        
+        return {
+            type: 'contentEditable',
+            elementId: activeElement.dataset.aiRewriterId,
+            selectedText: selection.toString()
+        };
+    }
+    
+    return null;
+}
+
+// Function that runs in the page context to create the popover UI
+function createPreviewPopoverUI(previewId, previewText, originalText) {
+    // Remove any existing preview popover
+    const existingPopover = document.getElementById('--ai-rewriter-preview-popover');
+    if (existingPopover) {
+        existingPopover.remove();
+    }
+    
+    // Store styles for cleanup
+    const HIGHLIGHT_STYLES = {
+        input: {
+            outline: '3px solid rgba(251, 191, 36, 0.8)',
+            outlineOffset: '2px',
+            boxShadow: '0 0 16px rgba(251, 191, 36, 0.5), 0 0 4px rgba(251, 191, 36, 0.3)'
+        },
+        mark: {
+            backgroundColor: 'rgba(251, 191, 36, 0.5)',
+            borderRadius: '2px',
+            boxShadow: '0 0 0 2px rgba(251, 191, 36, 0.3)',
+            padding: '1px 0'
+        }
+    };
+    
+    // Get selection position for popover placement and highlight the selection
+    const activeElement = document.activeElement;
+    const selection = window.getSelection();
+    let popoverTop = 100;
+    let popoverLeft = 100;
+    let highlightedElement = null;
+    let originalStyles = null;
+    let isInputHighlight = false;
+    let selectionRect = null;
+    
+    // Determine position and apply highlighting based on element type
+    if (activeElement && (activeElement.tagName === 'TEXTAREA' || 
+        (activeElement.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeElement.type)))) {
+        // For input/textarea, use element's bounding rect
+        const rect = activeElement.getBoundingClientRect();
+        selectionRect = rect;
+        popoverTop = rect.bottom + window.scrollY + 12;
+        popoverLeft = Math.max(10, rect.left + window.scrollX);
+        
+        // Store original styles for restoration
+        originalStyles = {
+            outline: activeElement.style.outline,
+            outlineOffset: activeElement.style.outlineOffset,
+            boxShadow: activeElement.style.boxShadow
+        };
+        
+        // Apply highlight styles directly (more reliable than classes)
+        Object.assign(activeElement.style, HIGHLIGHT_STYLES.input);
+        activeElement.dataset.aiRewriterHighlighted = 'true';
+        highlightedElement = activeElement;
+        isInputHighlight = true;
+        
+        console.log('Applied highlight to input/textarea:', activeElement.tagName);
+    } else if (selection.rangeCount > 0 && !selection.isCollapsed) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        selectionRect = rect;
+        popoverTop = rect.bottom + window.scrollY + 12;
+        popoverLeft = Math.max(10, rect.left + window.scrollX);
+        
+        // Try to highlight contentEditable selection with a mark element
+        try {
+            const highlightMark = document.createElement('mark');
+            highlightMark.id = '--ai-rewriter-selection-mark';
+            Object.assign(highlightMark.style, HIGHLIGHT_STYLES.mark);
+            
+            const clonedRange = range.cloneRange();
+            try {
+                clonedRange.surroundContents(highlightMark);
+                highlightedElement = highlightMark;
+                console.log('Applied highlight mark to selection');
+            } catch (e) {
+                console.log('Selection spans multiple elements, skipping highlight wrapping');
+            }
+        } catch (e) {
+            console.log('Could not highlight selection:', e);
+        }
+    }
+    
+    // Helper function to remove highlight
+    const removeHighlight = () => {
+        // Remove mark element highlight (for contentEditable)
+        const mark = document.getElementById('--ai-rewriter-selection-mark');
+        if (mark) {
+            const parent = mark.parentNode;
+            while (mark.firstChild) {
+                parent.insertBefore(mark.firstChild, mark);
+            }
+            parent.removeChild(mark);
+        }
+        
+        // Remove input/textarea inline style highlight
+        document.querySelectorAll('[data-ai-rewriter-highlighted="true"]').forEach(el => {
+            el.style.outline = '';
+            el.style.outlineOffset = '';
+            el.style.boxShadow = '';
+            delete el.dataset.aiRewriterHighlighted;
+        });
+    };
+    
+    // Create popover container
+    const popover = document.createElement('div');
+    popover.id = '--ai-rewriter-preview-popover';
+    popover.dataset.previewId = previewId;
+    
+    // Modern flat styling (no gradients)
+    Object.assign(popover.style, {
+        position: 'absolute',
+        top: `${popoverTop}px`,
+        left: `${popoverLeft}px`,
+        maxWidth: '450px',
+        minWidth: '320px',
+        maxHeight: '400px',
+        backgroundColor: '#ffffff',
+        borderRadius: '12px',
+        boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+        zIndex: '2147483647',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        overflow: 'hidden',
+        animation: 'aiRewriterFadeIn 0.2s ease-out'
+    });
+    
+    // Add animation keyframes
+    if (!document.getElementById('--ai-rewriter-keyframes')) {
+        const style = document.createElement('style');
+        style.id = '--ai-rewriter-keyframes';
+        style.textContent = `
+            @keyframes aiRewriterFadeIn {
+                from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            @keyframes aiRewriterFadeOut {
+                from { opacity: 1; transform: translateY(0) scale(1); }
+                to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Header
+    const header = document.createElement('div');
+    Object.assign(header.style, {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 20px',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+        backgroundColor: '#3b82f6',
+        color: 'white'
+    });
+    
+    const title = document.createElement('div');
+    Object.assign(title.style, {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '14px',
+        fontWeight: '600'
+    });
+    title.innerHTML = `<span style="font-size: 16px;">✨</span> AI Suggestion`;
+    
+    const closeBtn = document.createElement('button');
+    Object.assign(closeBtn.style, {
+        background: 'rgba(255, 255, 255, 0.2)',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '6px 10px',
+        cursor: 'pointer',
+        color: 'white',
+        fontSize: '14px',
+        fontWeight: '500',
+        transition: 'background 0.15s ease'
+    });
+    closeBtn.textContent = '✕';
+    closeBtn.title = 'Cancel';
+    closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(255, 255, 255, 0.3)';
+    closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+    closeBtn.onclick = () => {
+        removeHighlight();
+        popover.style.animation = 'aiRewriterFadeOut 0.15s ease-out forwards';
+        setTimeout(() => popover.remove(), 150);
+        window.postMessage({ type: 'AI_REWRITER_PREVIEW_CANCEL', previewId }, '*');
+    };
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    
+    // Content area
+    const content = document.createElement('div');
+    Object.assign(content.style, {
+        padding: '16px 20px',
+        maxHeight: '220px',
+        overflowY: 'auto',
+        fontSize: '14px',
+        lineHeight: '1.6',
+        color: '#1f2937',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word'
+    });
+    content.textContent = previewText;
+    
+    // Footer with buttons
+    const footer = document.createElement('div');
+    Object.assign(footer.style, {
+        display: 'flex',
+        gap: '10px',
+        padding: '16px 20px',
+        borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+        backgroundColor: 'rgba(249, 250, 251, 0.8)'
+    });
+    
+    // Cancel button
+    const cancelBtn = document.createElement('button');
+    Object.assign(cancelBtn.style, {
+        flex: '1',
+        padding: '10px 16px',
+        border: '1px solid #e5e7eb',
+        borderRadius: '10px',
+        background: 'white',
+        color: '#374151',
+        fontSize: '13px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        fontFamily: 'inherit'
+    });
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onmouseover = () => {
+        cancelBtn.style.background = '#f3f4f6';
+        cancelBtn.style.borderColor = '#d1d5db';
+    };
+    cancelBtn.onmouseout = () => {
+        cancelBtn.style.background = 'white';
+        cancelBtn.style.borderColor = '#e5e7eb';
+    };
+    cancelBtn.onclick = () => {
+        removeHighlight();
+        popover.style.animation = 'aiRewriterFadeOut 0.15s ease-out forwards';
+        setTimeout(() => popover.remove(), 150);
+        window.postMessage({ type: 'AI_REWRITER_PREVIEW_CANCEL', previewId }, '*');
+    };
+    
+    // Insert button
+    const insertBtn = document.createElement('button');
+    Object.assign(insertBtn.style, {
+        flex: '1',
+        padding: '10px 16px',
+        border: 'none',
+        borderRadius: '10px',
+        backgroundColor: '#3b82f6',
+        color: 'white',
+        fontSize: '13px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        fontFamily: 'inherit'
+    });
+    insertBtn.textContent = '✓ Insert';
+    insertBtn.onmouseover = () => {
+        insertBtn.style.backgroundColor = '#2563eb';
+        insertBtn.style.transform = 'translateY(-1px)';
+    };
+    insertBtn.onmouseout = () => {
+        insertBtn.style.backgroundColor = '#3b82f6';
+        insertBtn.style.transform = 'translateY(0)';
+    };
+    insertBtn.onclick = () => {
+        removeHighlight();
+        popover.style.animation = 'aiRewriterFadeOut 0.15s ease-out forwards';
+        setTimeout(() => popover.remove(), 150);
+        window.postMessage({ type: 'AI_REWRITER_PREVIEW_INSERT', previewId }, '*');
+    };
+    
+    footer.appendChild(cancelBtn);
+    footer.appendChild(insertBtn);
+    
+    // Assemble popover
+    popover.appendChild(header);
+    popover.appendChild(content);
+    popover.appendChild(footer);
+    
+    document.body.appendChild(popover);
+    
+    // Adjust position if popover goes off-screen or covers the selection
+    const popoverRect = popover.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Horizontal adjustment - keep popover within viewport
+    if (popoverRect.right > viewportWidth - 20) {
+        popover.style.left = `${Math.max(10, viewportWidth - popoverRect.width - 20)}px`;
+    }
+    
+    // Vertical adjustment - if popover goes below viewport or covers selection, move above
+    if (popoverRect.bottom > viewportHeight - 20) {
+        // Calculate position above the selection
+        if (selectionRect) {
+            const newTop = selectionRect.top + window.scrollY - popoverRect.height - 12;
+            // Only move above if there's room, otherwise keep below but scroll into view
+            if (newTop > 10) {
+                popover.style.top = `${newTop}px`;
+            } else {
+                // Not enough room above either, position at top of viewport
+                popover.style.top = `${window.scrollY + 10}px`;
+                popover.style.position = 'fixed';
+                popover.style.top = '10px';
+            }
+        } else {
+            popover.style.top = `${Math.max(10, popoverTop - popoverRect.height - 30)}px`;
+        }
+    }
+    
+    // Focus the insert button for keyboard accessibility
+    insertBtn.focus();
+}
+
 // Handle messages from content scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'openSettings') {
         chrome.runtime.openOptionsPage();
+    }
+    
+    // Handle preview insert action
+    if (message.action === 'previewInsert') {
+        const previewData = pendingPreviews.get(message.previewId);
+        if (previewData) {
+            (async () => {
+                try {
+                    // Use stored selection state for reliable text replacement
+                    await injectTextWithSelectionState(
+                        previewData.tabId, 
+                        previewData.frameId, 
+                        previewData.previewText,
+                        previewData.selectionState
+                    );
+                    
+                    if (previewData.settings.enableUsageTracking) {
+                        await trackUsage(previewData.modeKey, previewData.originalText.length, previewData.previewText.length);
+                    }
+                    
+                    if (previewData.settings.enableUndo) {
+                        storeForUndo(previewData.tabId, previewData.frameId, previewData.originalText);
+                    }
+                    
+                    notifyUser(previewData.tabId, "✅ Text inserted successfully!", false, 2000);
+                    pendingPreviews.delete(message.previewId);
+                } catch (error) {
+                    console.error("Preview insert failed:", error);
+                    notifyUser(previewData.tabId, "❌ Failed to insert text", true);
+                }
+            })();
+        }
+        sendResponse({ success: true });
+        return true;
+    }
+    
+    // Handle preview cancel action
+    if (message.action === 'previewCancel') {
+        pendingPreviews.delete(message.previewId);
+        sendResponse({ success: true });
+        return true;
     }
 });
 
@@ -1396,13 +1997,20 @@ async function executeShortcutRewrite(tab, mode) {
         );
 
         if (resultText && resultText.trim()) {
-            await injectTextIntoPage(tab.id, 0, resultText);
-            
-            if (settings.enableUsageTracking) {
-                await trackUsage(mode, result.selectedText.length, resultText.length);
+            // Check if preview mode is enabled
+            if (settings.enablePreviewMode) {
+                // Show preview popover instead of directly injecting
+                await showPreviewPopover(tab.id, 0, result.selectedText, resultText, mode, settings);
+            } else {
+                // Direct injection (old behavior)
+                await injectTextIntoPage(tab.id, 0, resultText);
+                
+                if (settings.enableUsageTracking) {
+                    await trackUsage(mode, result.selectedText.length, resultText.length);
+                }
+                
+                notifyUser(tab.id, "✅ Text rewritten successfully!", false, 2000);
             }
-            
-            notifyUser(tab.id, "✅ Text rewritten successfully!", false, 2000);
         } else {
             throw new Error("Empty response from AI");
         }

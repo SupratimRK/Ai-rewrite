@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>AI Rewriter Settings</title>
     <meta charset="UTF-8">
@@ -21,8 +22,8 @@
             --link-color: #3b82f6;
             --card-background: #ffffff;
             --card-border: #f3f4f6;
-            --card-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02);
-            --hover-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --hover-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             --font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
             --radius-sm: 6px;
             --radius-md: 8px;
@@ -41,8 +42,8 @@
             --input-background-color: #1f2937;
             --card-background: #1f2937;
             --card-border: #374151;
-            --card-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1);
-            --hover-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         body {
@@ -62,7 +63,7 @@
             border: 1px solid var(--card-border);
             border-radius: var(--radius-lg);
             box-shadow: var(--card-shadow);
-            max-width: 600px; 
+            max-width: 600px;
             width: 70vw;
             margin: 24px auto;
             overflow: hidden;
@@ -74,21 +75,11 @@
         }
 
         .header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover-color) 100%);
+            background-color: var(--primary-color);
             color: white;
             padding: 32px 40px;
             text-align: center;
             position: relative;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="white" opacity="0.05"/><circle cx="80" cy="40" r="1" fill="white" opacity="0.05"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
         }
 
         .header h1 {
@@ -140,7 +131,7 @@
         .tab.active {
             background-color: white;
             color: var(--primary-color);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         [data-theme="dark"] .tab.active {
@@ -150,11 +141,11 @@
 
         .tab:hover:not(.active) {
             color: var(--text-color);
-            background-color: rgba(255,255,255,0.7);
+            background-color: rgba(255, 255, 255, 0.7);
         }
 
         [data-theme="dark"] .tab:hover:not(.active) {
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .tab-content {
@@ -203,7 +194,9 @@
             letter-spacing: 0.25px;
         }
 
-        input, select, textarea {
+        input,
+        select,
+        textarea {
             width: 100%;
             padding: 12px 16px;
             box-sizing: border-box;
@@ -217,14 +210,18 @@
             height: 48px;
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             border-color: var(--input-focus-border-color);
             outline: 0;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
             transform: translateY(-1px);
         }
 
-        input:hover, select:hover, textarea:hover {
+        input:hover,
+        select:hover,
+        textarea:hover {
             border-color: var(--text-secondary);
         }
 
@@ -250,7 +247,7 @@
 
         .checkbox-group:hover {
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         [data-theme="dark"] .checkbox-group {
@@ -321,25 +318,9 @@
             white-space: nowrap;
         }
 
-        button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        button:hover::before {
-            left: 100%;
-        }
-
         button:hover {
             background-color: var(--primary-hover-color);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
         button:active {
@@ -361,7 +342,7 @@
 
         button.secondary:hover {
             background-color: var(--input-border-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         button.danger {
@@ -433,7 +414,7 @@
         }
 
         .custom-mode-item {
-            background: linear-gradient(135deg, var(--primary-light) 0%, rgba(59, 130, 246, 0.05) 100%);
+            background-color: var(--primary-light);
             padding: 20px;
             border-radius: var(--radius-lg);
             margin-bottom: 16px;
@@ -482,14 +463,13 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--primary-light) 0%, rgba(59, 130, 246, 0.05) 100%);
+            background-color: var(--primary-light);
             padding: 20px;
             border-radius: var(--radius-lg);
-            margin-bottom: 16px;
+            margin-bottom: 0;
             border: 1px solid var(--card-border);
             transition: all 0.2s ease;
             text-align: center;
-            margin-bottom: 0;
         }
 
         .stat-card:hover {
@@ -526,7 +506,7 @@
             align-items: center;
             margin-bottom: 0;
             padding: 20px 24px;
-            background: linear-gradient(135deg, var(--primary-light) 0%, rgba(59, 130, 246, 0.05) 100%);
+            background-color: var(--primary-light);
             border-radius: var(--radius-lg);
             border: 1px solid var(--card-border);
             transition: all 0.2s ease;
@@ -535,7 +515,7 @@
 
         .mode-item:hover {
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .mode-checkbox {
@@ -623,21 +603,10 @@
         .footer {
             margin-top: 48px;
             padding: 32px 40px;
-            background: linear-gradient(135deg, var(--primary-light) 0%, rgba(59, 130, 246, 0.08) 100%);
+            background-color: var(--primary-light);
             border-top: 2px solid var(--primary-color);
             position: relative;
             overflow: hidden;
-        }
-
-        .footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="footerPattern" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="0.5" fill="currentColor" opacity="0.1"/><circle cx="40" cy="25" r="0.5" fill="currentColor" opacity="0.1"/><circle cx="25" cy="40" r="0.5" fill="currentColor" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23footerPattern)"/></svg>');
-            pointer-events: none;
         }
 
         .footer-content {
@@ -662,14 +631,13 @@
         .footer-brand .logo {
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover-color) 100%);
+            background-color: var(--primary-color);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 18px;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
 
         .footer-description {
@@ -728,12 +696,19 @@
         }
 
         @keyframes heartbeat {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
         }
 
         [data-theme="dark"] .footer {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
+            background-color: rgba(59, 130, 246, 0.05);
         }
 
         .section-title {
@@ -851,41 +826,44 @@
                 width: calc(100vw - 32px);
                 border-radius: var(--radius-md);
             }
-            
+
             .header {
                 padding: 24px 20px;
             }
-            
-            .main-content, .footer {
+
+            .main-content,
+            .footer {
                 padding: 24px 20px;
             }
-            
-            .form-row, .custom-form-row {
+
+            .form-row,
+            .custom-form-row {
                 grid-template-columns: 1fr;
                 gap: 16px;
             }
-            
-            .form-row button, .custom-form-row button {
+
+            .form-row button,
+            .custom-form-row button {
                 height: 48px;
                 align-self: stretch;
             }
-            
+
             .help-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .tabs {
                 flex-wrap: wrap;
                 gap: 4px;
             }
-            
+
             .tab {
                 flex: none;
                 min-width: 100px;
                 font-size: 12px;
                 padding: 10px 16px;
             }
-            
+
             .theme-toggle {
                 top: 16px;
                 right: 16px;
@@ -900,24 +878,25 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
             }
-            
+
             .mode-list {
                 grid-template-columns: 1fr;
             }
-            
+
             .button-group {
                 flex-direction: column;
             }
-            
+
             .button-group button {
                 width: 100%;
             }
         }
     </style>
 </head>
+
 <body>
     <button class="theme-toggle" id="themeToggle">🌙</button>
-    
+
     <div class="container">
         <div class="header">
             <h1>🤖 AI Text Rewriter</h1>
@@ -939,17 +918,21 @@
                 <div class="section-title">API Configuration</div>
                 <div class="form-group">
                     <label for="apiKey">🔑 OpenAI API Key *</label>
-                    <input type="password" id="apiKey" name="apiKey" placeholder="Paste your OpenAI API Key here (sk-...)">
+                    <input type="password" id="apiKey" name="apiKey"
+                        placeholder="Paste your OpenAI API Key here (sk-...)">
                     <div class="help-text">
-                        Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI Platform</a>
+                        Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank"
+                            rel="noopener noreferrer">OpenAI Platform</a>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="baseUrl">🌐 Custom Base URL (Optional)</label>
-                    <input type="text" id="baseUrl" name="baseUrl" placeholder="https://api.openai.com/v1 (leave empty for default)">
+                    <input type="text" id="baseUrl" name="baseUrl"
+                        placeholder="https://api.openai.com/v1 (leave empty for default)">
                     <div class="help-text">
-                        For OpenAI-compatible APIs (like LM Studio, Ollama, etc.), enter the base URL. Leave empty to use default OpenAI endpoint.
+                        For OpenAI-compatible APIs (like LM Studio, Ollama, etc.), enter the base URL. Leave empty to
+                        use default OpenAI endpoint.
                     </div>
                 </div>
 
@@ -976,6 +959,19 @@
                 </div>
 
                 <div class="section-title" style="margin-top: 32px;">Preferences</div>
+
+                <!-- Preview Mode - Featured Setting -->
+                <div class="checkbox-group"
+                    style="background-color: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2);">
+                    <input type="checkbox" id="enablePreviewMode" checked>
+                    <div style="flex: 1;">
+                        <label for="enablePreviewMode"
+                            style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <span style="font-size: 16px;">👁️</span> Preview Before Replacing
+                        </label>
+                    </div>
+                </div>
+
                 <div class="checkbox-group">
                     <input type="checkbox" id="enableUndo" checked>
                     <label for="enableUndo">↶ Enable Undo Functionality</label>
@@ -1000,8 +996,9 @@
             <!-- Modes Tab -->
             <div id="modes" class="tab-content">
                 <div class="section-title">Available Rewrite Modes</div>
-                <p style="color: var(--text-secondary); margin-bottom: 24px;">Select which rewrite modes to show in the context menu:</p>
-                
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Select which rewrite modes to show in the
+                    context menu:</p>
+
                 <!-- Built-in Modes -->
                 <div class="mode-list">
                     <div class="mode-item">
@@ -1226,8 +1223,9 @@
             <!-- Custom Modes Tab -->
             <div id="custom" class="tab-content">
                 <div class="section-title">Custom Rewrite Modes</div>
-                <p style="color: var(--text-secondary); margin-bottom: 24px;">Create your own custom rewrite modes with specific instructions:</p>
-                
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Create your own custom rewrite modes with
+                    specific instructions:</p>
+
                 <div class="custom-form-row">
                     <div class="form-group">
                         <label for="customModeName">Mode Name</label>
@@ -1235,14 +1233,16 @@
                     </div>
                     <div class="form-group">
                         <label for="customModePrompt">Prompt Instructions</label>
-                        <textarea id="customModePrompt" placeholder="Describe how the text should be rewritten..." style="min-height: 80px;"></textarea>
+                        <textarea id="customModePrompt" placeholder="Describe how the text should be rewritten..."
+                            style="min-height: 80px;"></textarea>
                     </div>
                     <button id="addCustomMode">➕ Add Mode</button>
                 </div>
 
                 <div class="tip-box">
                     <span class="tip-icon">💡</span>
-                    <strong>Pro Tip:</strong> Be specific in your instructions. Include tone, style, audience, and any special requirements.
+                    <strong>Pro Tip:</strong> Be specific in your instructions. Include tone, style, audience, and any
+                    special requirements.
                 </div>
 
                 <div class="help-text" style="margin-bottom: 24px;">
@@ -1269,7 +1269,8 @@
                     </div>
                 </div>
 
-                <div class="help-text" style="margin-top: 24px; text-align: center; color: var(--text-secondary);" id="noCustomModes">
+                <div class="help-text" style="margin-top: 24px; text-align: center; color: var(--text-secondary);"
+                    id="noCustomModes">
                     No custom modes created yet. Add one above to get started!
                 </div>
             </div>
@@ -1306,7 +1307,7 @@
             <!-- Advanced Tab -->
             <div id="advanced" class="tab-content">
                 <div class="section-title">Advanced Settings</div>
-                
+
                 <div class="form-group">
                     <label>🌙 Appearance</label>
                     <div class="checkbox-group">
@@ -1327,11 +1328,12 @@
             <!-- Help Tab -->
             <div id="help" class="tab-content">
                 <div class="section-title">Help & Documentation</div>
-                
+
                 <div class="help-section">
                     <h3>🚀 Getting Started</h3>
                     <ol style="margin: 12px 0; padding-left: 20px;">
-                        <li>Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></li>
+                        <li>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank"
+                                rel="noopener noreferrer">OpenAI Platform</a></li>
                         <li>Paste it in the General settings tab</li>
                         <li>Select your preferred AI model</li>
                         <li>Right-click on any text to access rewrite options</li>
@@ -1361,15 +1363,19 @@
                 <div class="help-grid">
                     <div class="help-section">
                         <h3>🧠 AI Models Explained</h3>
-                        
+
                         <div class="model-info">
-                            <div class="model-name">Gemini Flash Lite (Recommended)</div>
-                            <div class="model-desc">Optimized for fast, efficient text rewriting with excellent quality. Perfect for everyday use - grammar fixes, tone adjustments, and most rewriting tasks. Best balance of speed and cost-effectiveness.</div>
+                            <div class="model-name">GPT-5-Nano (Recommended)</div>
+                            <div class="model-desc">Optimized for fast, efficient text rewriting with excellent quality.
+                                Perfect for everyday use - grammar fixes, tone adjustments, and most rewriting tasks.
+                                Best balance of speed and cost-effectiveness.</div>
                         </div>
 
                         <div class="model-info">
-                            <div class="model-name">Gemini Flash (Complex Rewrites)</div>
-                            <div class="model-desc">Enhanced model for complex transformations and nuanced rewriting. Use for creative writing, detailed content generation, academic work, or when you need deeper understanding and more sophisticated output.</div>
+                            <div class="model-name">GPT-5-Mini (Complex Rewrites)</div>
+                            <div class="model-desc">Enhanced model for complex transformations and nuanced rewriting.
+                                Use for creative writing, detailed content generation, academic work, or when you need
+                                deeper understanding and more sophisticated output.</div>
                         </div>
                     </div>
 
@@ -1419,10 +1425,10 @@
                         <p><strong>API Key Issues:</strong></p>
                         <ul style="margin: 8px 0; padding-left: 20px;">
                             <li>Ensure your API key is valid and active</li>
-                            <li>Check your Google AI Studio quota limits</li>
+                            <li>Check your API provider's quota limits</li>
                             <li>Verify the key has proper permissions</li>
                         </ul>
-                        
+
                         <p><strong>Extension Not Working:</strong></p>
                         <ul style="margin: 8px 0; padding-left: 20px;">
                             <li>Refresh the page after changing settings</li>
@@ -1436,43 +1442,47 @@
             <div id="status"></div>
         </div>
 
-    <div class="footer">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <div class="logo">🤖</div>
-                <span>AI Text Rewriter</span>
-            </div>
-            
-            <div class="footer-description">
-                Transform your writing with the power of Google Gemini AI. Professional, fast, and intelligent text rewriting at your fingertips.
-            </div>
-            
-            <div class="footer-links">
-                <a href="https://github.com/SupratimRK/Ai-rewrite" target="_blank" class="footer-link">
-                    <span>📂</span> Source Code
-                </a>
-                <a href="https://github.com/SupratimRK/Ai-rewrite/blob/main/README.md" target="_blank" class="footer-link">
-                    <span>📚</span> Documentation
-                </a>
-                <a href="https://github.com/SupratimRK/Ai-rewrite/issues" target="_blank" class="footer-link">
-                    <span>🐛</span> Report Issues
-                </a>
-                <a href="https://supratim.netlify.app" target="_blank" class="footer-link">
-                    <span>🌐</span> Portfolio
-                </a>
-                <a href="mailto:supratimrk@outlook.com" class="footer-link">
-                    <span>📧</span> Contact
-                </a>
-            </div>
-            
-            <div class="footer-divider"></div>
-            
-            <div class="footer-copyright">
-                Made with <span class="footer-hearts">💙</span> by <strong>Supratim</strong> • Version 2.0 • © 2025
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">🤖</div>
+                    <span>AI Text Rewriter</span>
+                </div>
+
+                <div class="footer-description">
+                    Transform your writing with the power of AI. Professional, fast, and intelligent text rewriting at
+                    your fingertips.
+                </div>
+
+                <div class="footer-links">
+                    <a href="https://github.com/SupratimRK/Ai-rewrite" target="_blank" class="footer-link">
+                        <span>📂</span> Source Code
+                    </a>
+                    <a href="https://github.com/SupratimRK/Ai-rewrite/blob/main/README.md" target="_blank"
+                        class="footer-link">
+                        <span>📚</span> Documentation
+                    </a>
+                    <a href="https://github.com/SupratimRK/Ai-rewrite/issues" target="_blank" class="footer-link">
+                        <span>🐛</span> Report Issues
+                    </a>
+                    <a href="https://supratim.netlify.app" target="_blank" class="footer-link">
+                        <span>🌐</span> Portfolio
+                    </a>
+                    <a href="mailto:supratimrk@outlook.com" class="footer-link">
+                        <span>📧</span> Contact
+                    </a>
+                </div>
+
+                <div class="footer-divider"></div>
+
+                <div class="footer-copyright">
+                    Made with <span class="footer-hearts">💙</span> by <strong>Supratim</strong> • Version 2.5.1 • ©
+                    2026
+                </div>
             </div>
         </div>
-    </div>
 
-    <script src="options.js"></script>
+        <script src="options.js"></script>
 </body>
+
 </html>

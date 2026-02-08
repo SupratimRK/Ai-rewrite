@@ -116,6 +116,7 @@ async function loadAllSettings() {
             'enabledModes',
             'maxTextLength',
             'enableUndo',
+            'enablePreviewMode',
             'enableUsageTracking',
             'enableKeyboardShortcuts',
             'darkMode'
@@ -128,6 +129,7 @@ async function loadAllSettings() {
                 enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
                 maxTextLength: result.maxTextLength || 8000,
                 enableUndo: result.enableUndo !== false,
+                enablePreviewMode: result.enablePreviewMode !== false,
                 enableUsageTracking: result.enableUsageTracking !== false,
                 enableKeyboardShortcuts: result.enableKeyboardShortcuts !== false,
                 darkMode: result.darkMode || false
@@ -146,6 +148,7 @@ function updateUIFromSettings() {
     document.getElementById('selectedModel').value = currentSettings.selectedModel;
     document.getElementById('maxTextLength').value = currentSettings.maxTextLength;
     document.getElementById('enableUndo').checked = currentSettings.enableUndo;
+    document.getElementById('enablePreviewMode').checked = currentSettings.enablePreviewMode;
     document.getElementById('enableUsageTracking').checked = currentSettings.enableUsageTracking;
     document.getElementById('enableKeyboardShortcuts').checked = currentSettings.enableKeyboardShortcuts;
     document.getElementById('darkMode').checked = currentSettings.darkMode;
@@ -233,6 +236,7 @@ async function saveGeneralSettings() {
         selectedModel: document.getElementById('selectedModel').value,
         maxTextLength: parseInt(document.getElementById('maxTextLength').value),
         enableUndo: document.getElementById('enableUndo').checked,
+        enablePreviewMode: document.getElementById('enablePreviewMode').checked,
         enableUsageTracking: document.getElementById('enableUsageTracking').checked,
         enableKeyboardShortcuts: document.getElementById('enableKeyboardShortcuts').checked
     };
