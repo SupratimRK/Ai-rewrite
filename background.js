@@ -1464,6 +1464,15 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         inputEnd = activeElement.selectionEnd;
         originalValue = activeElement.value;
 
+        // If selection collapsed during context click, find originalText in value
+        if (inputStart === inputEnd && originalText) {
+            const foundIdx = originalValue.indexOf(originalText);
+            if (foundIdx !== -1) {
+                inputStart = foundIdx;
+                inputEnd = foundIdx + originalText.length;
+            }
+        }
+
         // Overwrite selected portion with rewritten text
         const before = originalValue.substring(0, inputStart);
         const after = originalValue.substring(inputEnd);
@@ -1474,59 +1483,80 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         activeElement.setSelectionRange(inputStart, newEnd);
         activeElement.focus();
 
-        // Highlight input field with glowing ring
+        // Highlight input field with glowing ring and soft tint
         activeElement.dataset.aiRewriterPreviewing = 'true';
-        activeElement.style.outline = '2px solid #6366f1';
-        activeElement.style.outlineOffset = '2px';
-        activeElement.style.boxShadow = '0 0 0 4px rgba(99, 102, 241, 0.22), 0 0 16px rgba(99, 102, 241, 0.35)';
+        activeElement.style.setProperty('outline', '2.5px solid #6366f1', 'important');
+        activeElement.style.setProperty('outline-offset', '2px', 'important');
+        activeElement.style.setProperty('box-shadow', '0 0 0 4px rgba(99, 102, 241, 0.25), 0 0 20px rgba(99, 102, 241, 0.45)', 'important');
+        activeElement.style.setProperty('background-color', 'rgba(99, 102, 241, 0.08)', 'important');
 
         // Dispatch input event for frameworks (React, Vue, etc.)
         activeElement.dispatchEvent(new Event('input', { bubbles: true }));
         anchorRect = activeElement.getBoundingClientRect();
     }
     // 2. In-place overwrite for contentEditable
-    else if (activeElement && activeElement.isContentEditable && selection.rangeCount > 0) {
+    else if (activeElement && activeElement.isContentEditable) {
         targetType = 'contentEditable';
-        const range = selection.getRangeAt(0);
-        anchorRect = range.getBoundingClientRect();
+        let range = null;
 
-        // Delete selection contents and insert highlighted mark with new text
-        range.deleteContents();
-        markElement = document.createElement('mark');
-        markElement.id = '--ai-rewriter-preview-mark';
-        markElement.style.backgroundColor = 'rgba(99, 102, 241, 0.18)';
-        markElement.style.borderBottom = '2px solid #6366f1';
-        markElement.style.borderRadius = '4px';
-        markElement.style.padding = '2px 4px';
-        markElement.style.color = 'inherit';
-        markElement.style.boxShadow = '0 0 12px rgba(99, 102, 241, 0.3)';
-        markElement.textContent = previewText;
+        if (selection.rangeCount > 0 && !selection.isCollapsed) {
+            range = selection.getRangeAt(0);
+        } else if (originalText) {
+            // Find text node matching original text
+            const walker = document.createTreeWalker(activeElement, NodeFilter.SHOW_TEXT, null, false);
+            while (walker.nextNode()) {
+                const node = walker.currentNode;
+                const idx = node.textContent.indexOf(originalText);
+                if (idx >= 0) {
+                    range = document.createRange();
+                    range.setStart(node, idx);
+                    range.setEnd(node, idx + originalText.length);
+                    break;
+                }
+            }
+        }
 
-        range.insertNode(markElement);
-        selection.removeAllRanges();
+        if (range) {
+            anchorRect = range.getBoundingClientRect();
+            range.deleteContents();
 
-        // Dispatch input event
-        activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-        anchorRect = markElement.getBoundingClientRect();
+            markElement = document.createElement('mark');
+            markElement.id = '--ai-rewriter-preview-mark';
+            markElement.style.setProperty('background-color', 'rgba(99, 102, 241, 0.28)', 'important');
+            markElement.style.setProperty('color', 'inherit', 'important');
+            markElement.style.setProperty('border-bottom', '2.5px solid #6366f1', 'important');
+            markElement.style.setProperty('border-radius', '4px', 'important');
+            markElement.style.setProperty('padding', '2px 5px', 'important');
+            markElement.style.setProperty('box-shadow', '0 0 0 2px rgba(99, 102, 241, 0.2), 0 0 16px rgba(99, 102, 241, 0.45)', 'important');
+            markElement.textContent = previewText;
+
+            range.insertNode(markElement);
+            selection.removeAllRanges();
+
+            activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+            anchorRect = markElement.getBoundingClientRect();
+        } else {
+            anchorRect = activeElement.getBoundingClientRect();
+        }
     }
 
     if (!anchorRect || (anchorRect.width === 0 && anchorRect.height === 0)) {
         anchorRect = {
             top: window.innerHeight / 2,
             bottom: window.innerHeight / 2 + 40,
-            left: window.innerWidth / 2 - 120,
-            right: window.innerWidth / 2 + 120,
+            left: window.innerWidth / 2 - 140,
+            right: window.innerWidth / 2 + 140,
             height: 40,
-            width: 240
+            width: 280
         };
     }
 
     // Calculate slim floating panel position
-    let panelTop = anchorRect.top + window.scrollY - 52;
+    let panelTop = anchorRect.top + window.scrollY - 54;
     if (panelTop < window.scrollY + 10) {
         panelTop = anchorRect.bottom + window.scrollY + 10;
     }
-    let panelLeft = Math.max(16, Math.min(window.innerWidth - 340, anchorRect.left + window.scrollX));
+    let panelLeft = Math.max(16, Math.min(window.innerWidth - 360, anchorRect.left + window.scrollX));
 
     // Create Slim Floating Action Panel
     const panel = document.createElement('div');
@@ -1537,7 +1567,7 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         position: 'absolute',
         top: `${panelTop}px`,
         left: `${panelLeft}px`,
-        height: '42px',
+        height: '44px',
         padding: '4px 6px 4px 10px',
         borderRadius: '9999px',
         backgroundColor: 'rgba(15, 23, 42, 0.94)',
@@ -1575,9 +1605,10 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     // Clean up highlights function
     const cleanupHighlights = () => {
         if (targetType === 'input' && targetInput) {
-            targetInput.style.outline = '';
-            targetInput.style.outlineOffset = '';
-            targetInput.style.boxShadow = '';
+            targetInput.style.removeProperty('outline');
+            targetInput.style.removeProperty('outline-offset');
+            targetInput.style.removeProperty('box-shadow');
+            targetInput.style.removeProperty('background-color');
             delete targetInput.dataset.aiRewriterPreviewing;
         } else if (targetType === 'contentEditable' && markElement) {
             const parent = markElement.parentNode;
@@ -1633,7 +1664,7 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
             e.preventDefault();
             e.stopPropagation();
             onDecline();
-        } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey || e.target === panel || e.target.closest('#--ai-rewriter-inline-panel'))) {
+        } else if (e.key === 'Enter') {
             e.preventDefault();
             e.stopPropagation();
             onAccept();
@@ -1641,40 +1672,48 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     };
     window.addEventListener('keydown', keydownHandler);
 
-    // Sparkle Brand Glass Badge
+    // Extract clean mode title
+    let cleanModeTitle = (modeName || 'Rewrite').split('(')[0].replace(/^Fix\s+/i, '').replace(/\s+Tone$/i, '').trim();
+    if (!cleanModeTitle) cleanModeTitle = 'Rewrite';
+
+    // Sparkle Brand Glass Badge with Mode Name
     const badge = document.createElement('div');
     badge.style.display = 'flex';
     badge.style.alignItems = 'center';
-    badge.style.gap = '6px';
+    badge.style.gap = '7px';
+    badge.style.paddingRight = '2px';
     badge.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 10px rgba(99,102,241,0.5);">
-            <svg style="width:12px;height:12px;" fill="white" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
+        <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 10px rgba(99,102,241,0.5);flex-shrink:0;">
+            <svg style="width:13px;height:13px;" fill="white" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
         </div>
-        <span style="font-size:12px;font-weight:700;color:#f1f5f9;letter-spacing:-0.01em;">Rewrite</span>
+        <span style="font-size:12.5px;font-weight:700;color:#f8fafc;letter-spacing:-0.01em;white-space:nowrap;">${cleanModeTitle}</span>
     `;
 
-    // Solid Accept Button
+    // Solid Accept Button with well-spaced, clear Enter key
     const acceptBtn = document.createElement('button');
     Object.assign(acceptBtn.style, {
         background: '#10b981',
         color: '#ffffff',
         border: 'none',
-        fontSize: '12px',
+        fontSize: '12.5px',
         fontWeight: '700',
-        padding: '6px 13px',
+        padding: '6px 14px',
         borderRadius: '9999px',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        gap: '5px',
+        gap: '6px',
         boxShadow: '0 2px 10px rgba(16, 185, 129, 0.45)',
         transition: 'all 0.15s ease',
         fontFamily: 'inherit'
     });
     acceptBtn.innerHTML = `
-        <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        <span>Accept</span>
-        <span style="font-size: 10px; opacity: 0.85; background: rgba(0,0,0,0.22); padding: 1px 4px; border-radius: 4px; font-family: monospace;">↵</span>
+        <svg style="width: 13px; height: 13px; flex-shrink: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="letter-spacing:-0.01em;">Accept</span>
+        <span style="display:inline-flex; align-items:center; justify-content:center; gap:3px; padding: 2px 7px; font-size: 11px; font-weight: 700; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; color: #ffffff; line-height: 1;">
+            <svg style="width: 10px; height: 10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+            <span>Enter</span>
+        </span>
     `;
     acceptBtn.onmouseover = () => {
         acceptBtn.style.background = '#059669';
@@ -1696,21 +1735,21 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         background: 'rgba(244, 63, 94, 0.15)',
         color: '#fb7185',
         border: '1px solid rgba(244, 63, 94, 0.35)',
-        fontSize: '12px',
+        fontSize: '12.5px',
         fontWeight: '600',
-        padding: '5px 12px',
+        padding: '6px 13px',
         borderRadius: '9999px',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        gap: '5px',
+        gap: '6px',
         transition: 'all 0.15s ease',
         fontFamily: 'inherit'
     });
     declineBtn.innerHTML = `
-        <svg style="width: 11px; height: 11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        <span>Decline</span>
-        <span style="font-size: 10px; opacity: 0.85; background: rgba(0,0,0,0.22); padding: 1px 4px; border-radius: 4px; font-family: monospace;">Esc</span>
+        <svg style="width: 12px; height: 12px; flex-shrink: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <span style="letter-spacing:-0.01em;">Decline</span>
+        <span style="display:inline-flex; align-items:center; justify-content:center; padding: 2px 6px; font-size: 10.5px; font-weight: 700; background: rgba(0,0,0,0.28); border: 1px solid rgba(244,63,94,0.4); border-radius: 4px; color: #fecdd3; line-height: 1;">Esc</span>
     `;
     declineBtn.onmouseover = () => {
         declineBtn.style.background = 'rgba(244, 63, 94, 0.28)';
