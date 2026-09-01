@@ -1156,24 +1156,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // === ENHANCED CONTENT SCRIPT FUNCTIONS ===
-async function injectTextIntoPage(tabId, frameId, textToInject) {
-    console.log("Injecting text into tab:", tabId, "Frame:", frameId);
+async function injectTextIntoPage(tabId, frameId, textToInject, originalText) {
+    console.log("Injecting text into tab:", tabId, "Frame:", frameId, "Original text length:", (originalText || '').length);
     
     try {
         const results = await chrome.scripting.executeScript({
             target: { tabId: tabId, frameIds: frameId ? [frameId] : undefined },
             func: replaceSelectedTextEnhanced,
-            args: [textToInject],
+            args: [textToInject, originalText || ''],
         });
 
         if (results[0]?.result?.success) {
             console.log("Text injection successful");
         } else {
-            console.warn("Text injection failed or no result");
+            console.warn("Text injection failed:", results[0]?.result?.reason);
             throw new Error(results[0]?.result?.reason || "Unknown injection error");
         }
     } catch (error) {
-        console.error("Failed to inject script:", error);
+        console.error("Failed to inject script with selection state:", error);
         notifyUser(tabId, "Failed to replace text. Try clicking in the text field first.", true);
     }
 }
@@ -1323,13 +1323,14 @@ function replaceSelectedTextEnhanced(replacementText, originalText) {
             }
         }
 
-        if (targetText) {
+        if (targetText && targetText.trim()) {
+            const cleanTarget = targetText.trim();
             const candidates = document.querySelectorAll(
                 'div[contenteditable="true"], [role="textbox"], textarea, input, .ProseMirror, .public-DraftEditor-content, .copyable-text, [data-lexical-editor="true"], div[data-tab="10"]'
             );
             for (const el of candidates) {
                 const val = el.value || el.innerText || el.textContent;
-                if (val && val.includes(targetText)) {
+                if (val && (val.includes(cleanTarget) || val.trim() === cleanTarget)) {
                     return el;
                 }
             }
@@ -1346,30 +1347,36 @@ function replaceSelectedTextEnhanced(replacementText, originalText) {
         const nodes = [];
         while (walker.nextNode()) nodes.push(walker.currentNode);
 
+        const cleanTarget = textToSelect.replace(/\u00a0/g, ' ').trim();
+
+        // 1. Check individual text nodes
         for (const node of nodes) {
-            const idx = node.textContent.indexOf(textToSelect);
+            const nodeText = (node.textContent || '').replace(/\u00a0/g, ' ');
+            const idx = nodeText.indexOf(cleanTarget);
             if (idx !== -1) {
                 const range = document.createRange();
                 range.setStart(node, idx);
-                range.setEnd(node, idx + textToSelect.length);
+                range.setEnd(node, idx + cleanTarget.length);
                 sel.removeAllRanges();
                 sel.addRange(range);
                 return true;
             }
         }
 
+        // 2. Check across multiple adjacent text nodes
         let fullText = '';
         const nodeRanges = [];
         for (const node of nodes) {
+            const normText = (node.textContent || '').replace(/\u00a0/g, ' ');
             const start = fullText.length;
-            const end = start + node.textContent.length;
+            const end = start + normText.length;
             nodeRanges.push({ node, start, end });
-            fullText += node.textContent;
+            fullText += normText;
         }
 
-        const matchIdx = fullText.indexOf(textToSelect);
+        const matchIdx = fullText.indexOf(cleanTarget);
         if (matchIdx !== -1) {
-            const matchEnd = matchIdx + textToSelect.length;
+            const matchEnd = matchIdx + cleanTarget.length;
             let startNode = null, startOffset = 0;
             let endNode = null, endOffset = 0;
 
@@ -1394,6 +1401,16 @@ function replaceSelectedTextEnhanced(replacementText, originalText) {
                 return true;
             }
         }
+
+        // 3. Fallback: If container matches target or target covers entire container text
+        const containerText = (container.innerText || container.textContent || '').replace(/\u00a0/g, ' ').trim();
+        if (containerText === cleanTarget || (cleanTarget && containerText.includes(cleanTarget))) {
+            const range = document.createRange();
+            range.selectNodeContents(container);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return true;
+        }
         return false;
     }
 
@@ -1412,13 +1429,29 @@ function replaceSelectedTextEnhanced(replacementText, originalText) {
             const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
             let start = container.selectionStart;
             let end = container.selectionEnd;
-            const val = container.value;
+            const val = container.value || '';
 
-            if (start === end && originalText) {
-                const idx = val.indexOf(originalText);
-                if (idx !== -1) {
-                    start = idx;
-                    end = idx + originalText.length;
+            if (start === end) {
+                if (originalText && originalText.trim()) {
+                    const cleanOrig = originalText.trim();
+                    const idx = val.indexOf(originalText);
+                    if (idx !== -1) {
+                        start = idx;
+                        end = idx + originalText.length;
+                    } else if (val.indexOf(cleanOrig) !== -1) {
+                        start = val.indexOf(cleanOrig);
+                        end = start + cleanOrig.length;
+                    } else if (val.trim() === cleanOrig) {
+                        start = 0;
+                        end = val.length;
+                    } else {
+                        // Fallback when textbox text was rewritten without explicit selection: replace whole value
+                        start = 0;
+                        end = val.length;
+                    }
+                } else if (val.length > 0) {
+                    start = 0;
+                    end = val.length;
                 }
             }
 
@@ -1441,8 +1474,22 @@ function replaceSelectedTextEnhanced(replacementText, originalText) {
         // ContentEditable / Complex Editor (WhatsApp Web, Reddit, Facebook, etc.)
         if (container.isContentEditable || container.getAttribute('role') === 'textbox') {
             const sel = window.getSelection();
-            if (originalText && (!sel.rangeCount || sel.isCollapsed || sel.toString().trim() !== originalText.trim())) {
-                selectTextInContainer(container, originalText);
+            let selected = false;
+            
+            if (originalText && originalText.trim()) {
+                if (!sel.rangeCount || sel.isCollapsed || sel.toString().trim() !== originalText.trim()) {
+                    selected = selectTextInContainer(container, originalText);
+                } else {
+                    selected = true;
+                }
+            }
+
+            // If no specific text range is selected, select whole container contents to prevent appending at caret
+            if (!selected && (!sel.rangeCount || sel.isCollapsed)) {
+                const range = document.createRange();
+                range.selectNodeContents(container);
+                sel.removeAllRanges();
+                sel.addRange(range);
             }
 
             let inserted = false;
