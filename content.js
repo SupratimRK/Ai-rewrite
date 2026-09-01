@@ -52,13 +52,19 @@ window.addEventListener('message', (event) => {
         defaultModeName: 'Retone'
     };
 
+    // Helper to get clean mode name without any brackets
+    function getCleanModeTitle() {
+        const raw = cachedSettings.defaultModeName || 'Retone';
+        return raw.split('(')[0].replace(/^Fix\s+/i, '').replace(/\s+Tone$/i, '').trim() || 'Rewrite';
+    }
+
     // Refresh settings from background
     function syncSettings() {
         safeSendMessage({ action: 'getFloatingButtonSettings' }, (res) => {
             if (res) {
                 cachedSettings = res;
                 if (buttonEl) {
-                    buttonEl.title = `Rewrite with AI (${cachedSettings.defaultModeName || 'Retone'})`;
+                    buttonEl.title = `Rewrite with ${getCleanModeTitle()}`;
                     if (!cachedSettings.enableFloatingButton) {
                         buttonEl.style.display = 'none';
                     }
@@ -98,7 +104,7 @@ window.addEventListener('message', (event) => {
                 box-sizing: border-box;
             }
             #--ai-rewriter-quick-btn.visible {
-                opacity: 0.9;
+                opacity: 0.92;
                 transform: scale(1);
             }
             #--ai-rewriter-quick-btn:hover {
@@ -137,7 +143,7 @@ window.addEventListener('message', (event) => {
         buttonEl.id = '--ai-rewriter-quick-btn';
         buttonEl.setAttribute('role', 'button');
         buttonEl.setAttribute('tabindex', '-1');
-        buttonEl.title = `Rewrite with AI (${cachedSettings.defaultModeName || 'Retone'})`;
+        buttonEl.title = `Rewrite with ${getCleanModeTitle()}`;
 
         const brandIconUrl = chrome.runtime.getURL('icons/icon48.png');
         buttonEl.innerHTML = `
@@ -225,19 +231,19 @@ window.addEventListener('message', (event) => {
         }
 
         const btn = getOrCreateButton();
-        btn.title = `Rewrite with AI (${cachedSettings.defaultModeName || 'Retone'})`;
+        btn.title = `Rewrite with ${getCleanModeTitle()}`;
 
-        // Calculate positioning
+        // Calculate pixel-perfect positioning
         let top, left;
 
-        // For single-line inputs
-        if (rect.height < 42) {
-            top = rect.top + window.scrollY + (rect.height - 26) / 2;
-            left = rect.right + window.scrollX - 30;
+        // For single-line inputs & chat input bars (e.g., ChatGPT, Claude <= 68px height)
+        if (rect.height <= 68) {
+            top = Math.round(rect.top + window.scrollY + (rect.height - 26) / 2);
+            left = Math.round(rect.right + window.scrollX - 32);
         } else {
-            // For multi-line textareas and rich text editors (WhatsApp, Reddit, etc.)
-            top = rect.bottom + window.scrollY - 32;
-            left = rect.right + window.scrollX - 32;
+            // For large multi-line textareas and rich text editors
+            top = Math.round(rect.bottom + window.scrollY - 33);
+            left = Math.round(rect.right + window.scrollX - 33);
         }
 
         // Keep within viewport bounds
