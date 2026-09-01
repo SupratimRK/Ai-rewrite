@@ -122,13 +122,9 @@ window.addEventListener('message', (event) => {
                 transition: transform 0.15s ease;
             }
             #--ai-rewriter-quick-btn.loading {
+                opacity: 0.7;
                 border-color: #6366f1;
-            }
-            #--ai-rewriter-quick-btn.loading img.btn-brand-img {
-                animation: aiQuickSpin 0.8s linear infinite;
-            }
-            @keyframes aiQuickSpin {
-                100% { transform: rotate(360deg); }
+                pointer-events: none;
             }
         `;
         document.head.appendChild(style);
