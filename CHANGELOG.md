@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.6.0] - 2026-09-02
 
 ### Added
-- **Liquid Glass Color Icon Suite**: Standardized, high-resolution Icons8 Liquid Glass Color icon suite for all 15 modes, tabs, and action controls
+- **Modernized Icon Suite**: High-resolution color icons for all 15 modes, tabs, and action controls
 - **Interactive AI Model Pointer Dropdown**: Clickable native `<select>` dropdown with 1-tap quick model chips and custom model manual entry support
 - **Explicit Theme Override**: 3-way segmented control (`System`, `Light`, `Dark`) inside General settings with instant synchronous zero-flicker persistence
 - **Full Manifest V3 CSP Compliance**: Precompiled standalone CSS (`options.css`), external theme loader (`theme-loader.js`), and eliminated all inline scripts

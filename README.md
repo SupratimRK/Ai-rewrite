@@ -14,17 +14,17 @@
   <table>
     <tr>
       <td width="50%">
-        <h4 align="center">🌙 Dark Glassmorphism Studio</h4>
+        <h4 align="center">🌙 Dark Theme Studio</h4>
         <img src="docs/screenshots/01_general_dark.png" alt="Dark Mode Studio" width="100%">
       </td>
       <td width="50%">
-        <h4 align="center">☀️ Light Glassmorphism Studio</h4>
+        <h4 align="center">☀️ Light Theme Studio</h4>
         <img src="docs/screenshots/05_general_light.png" alt="Light Mode Studio" width="100%">
       </td>
     </tr>
     <tr>
       <td width="50%">
-        <h4 align="center">🎭 15 Liquid Glass Writing Modes</h4>
+        <h4 align="center">🎭 15 Writing Modes</h4>
         <img src="docs/screenshots/02_modes_liquid_glass.png" alt="15 Writing Modes" width="100%">
       </td>
       <td width="50%">
@@ -58,27 +58,16 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 
 ## 🚀 What's New in Version 2.6.0! 🚀
 
-- 💎 **Liquid Glass Color Icon Suite** - Modern, polished Icons8 Liquid Glass Color icon suite for all 15 modes, tabs, and actions
-- ⚡ **Interactive AI Model Pointer Dropdown** - Clickable native dropdown with 1-tap quick model chips and custom model manual input support
-- 🌓 **Explicit Interface Theme Override** - 3-way segmented control (System, Light, Dark) in General settings with instant synchronous zero-flicker persistence
-- 🛡️ **Full Manifest V3 CSP Compliance** - Zero inline scripts, precompiled standalone stylesheet, and optimized external theme loader
-- 🤖 **Official Provider Brand Logos** - High-contrast brand icons for OpenAI, OpenRouter, Groq, Google Gemini, DeepSeek, Vercel, Ollama, and LM Studio
-
-- 🌓 **Automatic Browser Theme Detection** - Options page now automatically detects and syncs with your browser's preferred color scheme (Light/Dark)
-- ⚡ **Curated Fast & Non-Pro AI Models** - Updated provider presets with latest fast, cost-effective models and dynamic evergreen pointers (`chat-latest`, `gemini-flash-lite-latest`, `deepseek-v4-flash`, `openrouter/auto`)
-- 🔧 **Streamlined Groq Integration** - Cleaned provider labeling and optimized fast model presets (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, `openai/gpt-oss-20b`)
-- ✨ **Context-Aware "Retone" Mode** - Intelligently analyzes writing context and rewrites with elevated tone, clarity, and enhanced vocabulary
-- 🛠️ **Reliable Text Injection** - Fixed preview mode text replacement and enhanced field highlighting
-- 🎭 **15 Professional Writing Modes** - From context-aware Retone to technical precision
-- 🎨 **Custom Mode Creator** - Build your own rewriting styles
+- 🎨 **Redesigned Studio UI** - Modern interface with high-contrast color iconography for all modes and settings
+- ⚡ **Interactive Model Selector** - Native dropdown with 1-tap quick model chips and custom model manual input support
+- 🌓 **Interface Theme Override** - 3-way switcher (System, Light, Dark) in General settings with instant zero-flicker persistence
+- 🛡️ **Full Manifest V3 CSP Compliance** - Zero inline scripts, precompiled standalone stylesheet, and optimized external loader
+- 🤖 **Official Provider Brand Logos** - High-contrast brand marks for OpenAI, OpenRouter, Groq, Google Gemini, DeepSeek, Vercel, Ollama, and LM Studio
+- ✨ **Curated Fast AI Models** - Evergreen model pointers (`chat-latest`, `gemini-flash-lite-latest`, `deepseek-v4-flash`, `openrouter/auto`)
+- 🎭 **15 Writing Modes** - Retone, Humanize, Professional, Academic, Technical, and more
 - ↶ **Undo Functionality** - Instantly revert any rewrite
-- ⌨️ **Keyboard Shortcuts** - Lightning-fast rewriting with hotkeys
-- 📊 **Usage Analytics** - Track your writing improvements
-- 📤 **Settings Export/Import** - Backup and share your configurations
-- 🔄 **Multiple AI Models** - Choose from GPT-4o, GPT-4o-mini, or GPT-3.5-turbo
-- 📤 **Settings Export/Import** - Backup and share your configurations
-- 🛡️ **Enhanced Error Handling** - Robust retry logic and user-friendly messages
-- 🎯 **Smart Text Validation** - Length limits and content filtering
+- ⌨️ **Keyboard Shortcuts** - Lightning-fast rewriting with customizable hotkeys
+- 📊 **Usage Analytics** - Track your writing improvements and token metrics
 
 ---
 
