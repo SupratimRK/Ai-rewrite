@@ -6,7 +6,7 @@
 
 **(Transform your writing with OpenAI and OpenAI-compatible APIs! 🚀)**
 
-[![Version](https://img.shields.io/badge/Version-2.5.2-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
+[![Version](https://img.shields.io/badge/Version-2.6.0-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
 
 **AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using OpenAI and OpenAI-compatible APIs. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **15 built-in rewriting modes including Retone**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
 
@@ -29,7 +29,13 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 
 ---
 
-## 🚀 What's New in Version 2.5.2! 🚀
+## 🚀 What's New in Version 2.6.0! 🚀
+
+- 💎 **Liquid Glass Color Icon Suite** - Modern, polished Icons8 Liquid Glass Color icon suite for all 15 modes, tabs, and actions
+- ⚡ **Interactive AI Model Pointer Dropdown** - Clickable native dropdown with 1-tap quick model chips and custom model manual input support
+- 🌓 **Explicit Interface Theme Override** - 3-way segmented control (System, Light, Dark) in General settings with instant synchronous zero-flicker persistence
+- 🛡️ **Full Manifest V3 CSP Compliance** - Zero inline scripts, precompiled standalone stylesheet, and optimized external theme loader
+- 🤖 **Official Provider Brand Logos** - High-contrast brand icons for OpenAI, OpenRouter, Groq, Google Gemini, DeepSeek, Vercel, Ollama, and LM Studio
 
 - 🌓 **Automatic Browser Theme Detection** - Options page now automatically detects and syncs with your browser's preferred color scheme (Light/Dark)
 - ⚡ **Curated Fast & Non-Pro AI Models** - Updated provider presets with latest fast, cost-effective models and dynamic evergreen pointers (`chat-latest`, `gemini-flash-lite-latest`, `deepseek-v4-flash`, `openrouter/auto`)

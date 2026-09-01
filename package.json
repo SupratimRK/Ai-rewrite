@@ -1,6 +1,6 @@
 {
   "name": "ai-text-rewriter-pro",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "description": "Advanced AI-powered Chrome extension for text rewriting. Transform your writing with 15 focused built-in modes including Retone, custom prompts, and professional writing assistance.",
   "main": "background.js",
   "scripts": {
@@ -47,7 +47,7 @@
   "author": {
     "name": "Supratim Mondal",
     "email": "supratimrk@outlook.com",
-    "url": "https://supratim.netlify.app"
+    "url": "https://smrk.in"
   },
   "license": "MIT",
   "bugs": {
@@ -67,8 +67,15 @@
     "type": "individual",
     "url": "https://github.com/sponsors/SupratimRK"
   },
-  "os": ["win32", "darwin", "linux"],
-  "cpu": ["x64", "arm64"],
+  "os": [
+    "win32",
+    "darwin",
+    "linux"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
   "preferGlobal": false,
   "private": false,
   "browserslist": [
@@ -76,6 +83,14 @@
   ],
   "config": {
     "manifest_version": 3,
-    "target_browsers": ["chrome", "edge", "brave", "opera"]
+    "target_browsers": [
+      "chrome",
+      "edge",
+      "brave",
+      "opera"
+    ]
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
   }
 }

@@ -5,6 +5,21 @@ All notable changes to the AI Text Rewriter Pro extension will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-09-02
+
+### Added
+- **Liquid Glass Color Icon Suite**: Standardized, high-resolution Icons8 Liquid Glass Color icon suite for all 15 modes, tabs, and action controls
+- **Interactive AI Model Pointer Dropdown**: Clickable native `<select>` dropdown with 1-tap quick model chips and custom model manual entry support
+- **Explicit Theme Override**: 3-way segmented control (`System`, `Light`, `Dark`) inside General settings with instant synchronous zero-flicker persistence
+- **Full Manifest V3 CSP Compliance**: Precompiled standalone CSS (`options.css`), external theme loader (`theme-loader.js`), and eliminated all inline scripts
+
+### Changed
+- Updated author website URL to `https://smrk.in`
+- Integrated official brand PNG/SVG icons for OpenAI, OpenRouter, Groq, Google Gemini, DeepSeek, Vercel, Ollama, and LM Studio
+- Streamlined provider cards by removing subtext clutter and second inner boxes
+
+---
+
 ## [2.5.2] - 2026-09-01
 
 ### Added

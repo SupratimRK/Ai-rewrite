@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Text Rewriter",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "description": "AI-powered Chrome extension for text rewriting using OpenAI or OpenAI-compatible APIs. Professional writing assistant with 15 focused modes including Retone, custom prompts, and instant text transformation.",
   "permissions": [
     "storage",

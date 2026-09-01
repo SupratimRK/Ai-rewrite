@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base Glassmorphism & Micro-animations */
+body {
+    font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    min-width: 680px;
+}
+
+.glass-panel {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+.glass-nested {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+/* Checkbox Custom Toggle */
+.glass-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.glass-checkbox input[type="checkbox"]:checked {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+    transform: scale(1.05);
+}
+
+.glass-checkbox input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Ambient Glow Mesh */
+.glow-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes pulseHeart {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+.pulse-heart {
+    animation: pulseHeart 2s ease-in-out infinite;
+}
