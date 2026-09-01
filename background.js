@@ -52,91 +52,76 @@ const BUILT_IN_MODES = {
     retone: {
         name: "Retone (Context & Polish)",
         description: "Intelligently adapt tone, enhance clarity, grammar, and vocabulary based on context",
-        icon: "✨",
         category: "tone"
     },
     humanize: {
         name: "Humanize (Make Natural)",
         description: "Make text sound more natural and conversational",
-        icon: "🧑",
         category: "style"
     },
     grammar: {
         name: "Fix Grammar & Spelling", 
         description: "Correct grammatical errors and typos",
-        icon: "✏️",
         category: "correction"
     },
     professional: {
         name: "Professional Tone",
         description: "Formal business communication style",
-        icon: "💼",
         category: "tone"
     },
     polite: {
         name: "Polite & Courteous",
         description: "Soften language with respectful phrasing",
-        icon: "🙏",
         category: "tone"
     },
     casual: {
         name: "Casual & Friendly", 
         description: "Informal, conversational style",
-        icon: "😊",
         category: "tone"
     },
     confident: {
         name: "Confident & Assertive",
         description: "Strong, decisive language",
-        icon: "💪",
         category: "tone"
     },
     empathetic: {
-        name: "Empathetic & Understanding",
+        name: "Empathetic & Caring",
         description: "Caring and emotionally aware tone",
-        icon: "❤️",
         category: "tone"
     },
     persuasive: {
         name: "Persuasive & Compelling",
         description: "Convincing and motivating language",
-        icon: "🎯",
         category: "style"
     },
     concise: {
-        name: "Concise & Clear",
+        name: "Concise & Direct",
         description: "Remove fluff, get to the point",
-        icon: "⚡",
         category: "structure"
     },
     detailed: {
-        name: "Detailed & Comprehensive",
+        name: "Detailed & In-Depth",
         description: "Add depth and explanations",
-        icon: "📚",
         category: "structure"
     },
     creative: {
         name: "Creative & Engaging",
         description: "Vivid, imaginative language",
-        icon: "🎨",
         category: "style"
     },
     technical: {
         name: "Technical & Precise",
         description: "Accurate technical terminology",
-        icon: "⚙️",
         category: "specialized"
     },
     academic: {
         name: "Academic & Scholarly",
         description: "Formal academic writing style",
-        icon: "🎓",
         category: "specialized"
     },
     marketing: {
-        name: "Marketing & Sales",
+        name: "Marketing & Copywriting",
         description: "Promotional and engaging copy",
-        icon: "📢",
         category: "specialized"
     }
 };
@@ -289,7 +274,7 @@ async function setupContextMenus() {
                     // Create parent menu
                     chrome.contextMenus.create({
                         id: CONTEXT_MENU_ID,
-                        title: "✨ Rewrite with AI",
+                        title: "AI Text Rewriter",
                         contexts: contexts
                     }, () => {
                         if (chrome.runtime.lastError) {
@@ -318,7 +303,7 @@ async function setupContextMenus() {
                                 chrome.contextMenus.create({
                                     id: `${CONTEXT_MENU_ID}_${modeKey}`,
                                     parentId: CONTEXT_MENU_ID,
-                                    title: `${BUILT_IN_MODES[modeKey].icon} ${BUILT_IN_MODES[modeKey].name}`,
+                                    title: BUILT_IN_MODES[modeKey].name,
                                     contexts: contexts
                                 }, () => {
                                     if (chrome.runtime.lastError) {
@@ -336,7 +321,7 @@ async function setupContextMenus() {
                             chrome.contextMenus.create({
                                 id: `${CONTEXT_MENU_ID}_custom_${key}`,
                                 parentId: CONTEXT_MENU_ID,
-                                title: `🎨 ${mode.name}`,
+                                title: mode.name,
                                 contexts: contexts
                             }, () => {
                                 if (chrome.runtime.lastError) {
@@ -362,7 +347,7 @@ async function setupContextMenus() {
                         chrome.contextMenus.create({
                             id: `${CONTEXT_MENU_ID}_undo`,
                             parentId: CONTEXT_MENU_ID,
-                            title: "↶ Undo Last Rewrite",
+                            title: "Undo Last Rewrite",
                             contexts: contexts
                         }, () => {
                             if (chrome.runtime.lastError) {
@@ -374,7 +359,7 @@ async function setupContextMenus() {
                         chrome.contextMenus.create({
                             id: `${CONTEXT_MENU_ID}_settings`,
                             parentId: CONTEXT_MENU_ID,
-                            title: "⚙️ Settings",
+                            title: "Settings & Studio",
                             contexts: contexts
                         }, () => {
                             if (chrome.runtime.lastError) {
@@ -636,7 +621,7 @@ async function handleUndo(tabId, frameId) {
     );
     
     if (!undoItem) {
-        notifyUser(tabId, "⚠️ No text to undo", true);
+        notifyUser(tabId, "No text to undo", true);
         return;
     }
     
@@ -649,10 +634,10 @@ async function handleUndo(tabId, frameId) {
             rewriteHistory.splice(index, 1);
         }
         
-        notifyUser(tabId, "↶ Text restored", false, 2000);
+        notifyUser(tabId, "Text restored", false, 2000);
     } catch (error) {
         console.error("Undo failed:", error);
-        notifyUser(tabId, "❌ Undo failed", true);
+        notifyUser(tabId, "Undo failed", true);
     }
 }
 
@@ -707,27 +692,27 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     // Validate tab and URL
     if (!isValidTab(tab)) {
         console.warn(`AI Rewriter cannot run on this URL: ${tab?.url || 'unknown'}`);
-        notifyUser(tab.id, "❌ Cannot rewrite text on this page (restricted URL)", true);
+        notifyUser(tab.id, "Cannot rewrite text on this page (restricted URL)", true);
         return;
     }
 
     // Validate text selection
     if (!info.selectionText || info.selectionText.trim() === "") {
-        notifyUser(tab.id, "⚠️ Please select text to rewrite", true);
+        notifyUser(tab.id, "Please select text to rewrite", true);
         return;
     }
 
     // Check text length
     const settings = await getSettings();
     if (info.selectionText.length > settings.maxTextLength) {
-        notifyUser(tab.id, `⚠️ Text too long (max ${settings.maxTextLength} characters)`, true);
+        notifyUser(tab.id, `Text too long (max ${settings.maxTextLength} characters)`, true);
         return;
     }
 
     // Parse mode
     const modeInfo = parseModeFromMenuId(info.menuItemId);
     if (!modeInfo) {
-        notifyUser(tab.id, "❌ Unknown rewrite mode", true);
+        notifyUser(tab.id, "Unknown rewrite mode", true);
         return;
     }
 
@@ -735,7 +720,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     // Check rate limiting
     if (!checkRateLimit()) {
-        notifyUser(tab.id, "⏳ Too many requests. Please wait a moment.", true);
+        notifyUser(tab.id, "Too many requests. Please wait a moment.", true);
         return;
     }
 
@@ -748,7 +733,7 @@ async function performRewrite(tab, info, modeInfo, settings) {
         const isLocal = settings.openaiBaseUrl && (settings.openaiBaseUrl.includes('localhost') || settings.openaiBaseUrl.includes('127.0.0.1'));
         // Validate API key first (skip for local endpoints)
         if (!isLocal && (!settings.openaiApiKey || settings.openaiApiKey.trim() === '')) {
-            notifyUser(tab.id, "❌ No API key configured - Click to open settings", true, 6000);
+            notifyUser(tab.id, "No API key configured - Click to open settings", true, 6000);
             // Show setup notification
             showApiKeyNotification();
             return;
@@ -759,7 +744,7 @@ async function performRewrite(tab, info, modeInfo, settings) {
             ? BUILT_IN_MODES[modeInfo.key]?.name || modeInfo.key
             : modeInfo.name || modeInfo.key;
         
-        notifyUser(tab.id, `🤖 Rewriting (${modeName})...`, false, 2000);
+        notifyUser(tab.id, `Rewriting with AI (${modeName})...`, false, 2500);
 
         // Store original text for undo
         if (settings.enableUndo) {
@@ -788,7 +773,7 @@ async function performRewrite(tab, info, modeInfo, settings) {
                     await trackUsage(modeInfo.key, info.selectionText.length, resultText.length);
                 }
                 
-                notifyUser(tab.id, "✅ Text rewritten successfully!", false, 2000);
+                notifyUser(tab.id, "Text rewritten successfully!", false, 2000);
             }
         } else {
             throw new Error("Empty response from AI");
@@ -797,7 +782,7 @@ async function performRewrite(tab, info, modeInfo, settings) {
     } catch (error) {
         console.error(`Context menu rewrite failed:`, error);
         const errorMsg = getUserFriendlyError(error);
-        notifyUser(tab.id, `❌ ${errorMsg}`, true);
+        notifyUser(tab.id, errorMsg, true);
         
         // Show additional help for common errors
         if (error.message && (error.message.includes('API key') || error.message.includes('401') || error.message.includes('403'))) {
@@ -1086,7 +1071,7 @@ async function injectTextIntoPage(tabId, frameId, textToInject) {
         }
     } catch (error) {
         console.error("Failed to inject script:", error);
-        notifyUser(tabId, "❌ Failed to replace text. Try clicking in the text field first.", true);
+        notifyUser(tabId, "Failed to replace text. Try clicking in the text field first.", true);
     }
 }
 
@@ -1103,14 +1088,14 @@ async function injectTextWithSelectionState(tabId, frameId, textToInject, select
 
         if (results[0]?.result?.success) {
             console.log("Text injection with selection state successful");
-            notifyUser(tabId, "✅ Text replaced successfully!", false, 2000);
+            notifyUser(tabId, "Text replaced successfully!", false, 2000);
         } else {
             console.warn("Text injection failed:", results[0]?.result?.reason);
             throw new Error(results[0]?.result?.reason || "Unknown injection error");
         }
     } catch (error) {
         console.error("Failed to inject script with selection state:", error);
-        notifyUser(tabId, "❌ Failed to replace text. The selection may have changed.", true);
+        notifyUser(tabId, "Failed to replace text. The selection may have changed.", true);
     }
 }
 
@@ -1295,97 +1280,114 @@ function replaceSelectedTextEnhanced(replacementText) {
     return { success, reason };
 }
 
-// === ENHANCED NOTIFICATION SYSTEM ===
+// === MODERN GLASSMORPHIC NOTIFICATION SYSTEM ===
 function notifyUser(tabId, message, isError = false, duration = 4000) {
     console.log(`Notifying user in tab ${tabId}: ${message}`);
     
-    // Check if message contains settings-related content
-    const isSettingsMessage = message.includes('API key') || message.includes('settings');
-    
+    // Clean any leading emoji from message string
+    const cleanMsg = (message || '').replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\s]+/u, '').trim();
+    const isSettingsMessage = cleanMsg.toLowerCase().includes('api key') || cleanMsg.toLowerCase().includes('settings');
+    const isLoading = cleanMsg.toLowerCase().includes('rewriting');
+    const isSuccess = cleanMsg.toLowerCase().includes('success') || cleanMsg.toLowerCase().includes('inserted') || cleanMsg.toLowerCase().includes('restored');
+    const isWarn = cleanMsg.toLowerCase().includes('please select') || cleanMsg.toLowerCase().includes('too long') || cleanMsg.toLowerCase().includes('too many') || cleanMsg.toLowerCase().includes('no text to undo');
+
+    let statusType = 'info';
+    if (isLoading) statusType = 'loading';
+    else if (isError) statusType = 'error';
+    else if (isSuccess) statusType = 'success';
+    else if (isWarn) statusType = 'warning';
+
     chrome.scripting.executeScript({
         target: { tabId: tabId },
-        func: (msg, errorFlag, durationMs, isSettings) => {
+        func: (msg, type, durationMs, isSettings) => {
             let notifyDiv = document.getElementById('--ai-rewriter-notifier');
             if (!notifyDiv) {
                 notifyDiv = document.createElement('div');
                 notifyDiv.id = '--ai-rewriter-notifier';
                 Object.assign(notifyDiv.style, {
-                    position: 'fixed', 
-                    top: '10px', 
-                    right: '10px', 
-                    padding: '12px 16px',
-                    borderRadius: '8px', 
-                    color: 'white',
-                    backgroundColor: errorFlag ? 'rgba(211, 47, 47, 0.95)' : 'rgba(46, 125, 50, 0.95)',
-                    zIndex: '2147483647', 
-                    fontSize: '14px', 
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                    fontWeight: '500',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    border: errorFlag ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.2)',
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    padding: '12px 18px',
+                    borderRadius: '16px',
+                    color: '#ffffff',
+                    backgroundColor: 'rgba(15, 23, 42, 0.94)',
+                    backdropFilter: 'blur(20px)',
+                    webkitBackdropFilter: 'blur(20px)',
+                    zIndex: '2147483647',
+                    fontSize: '13px',
+                    fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
+                    fontWeight: '600',
+                    boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.12)',
                     opacity: '0',
-                    transform: 'translateX(100%)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    maxWidth: '350px',
+                    transform: 'translateX(30px) scale(0.95)',
+                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                    maxWidth: '380px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
                     wordWrap: 'break-word',
-                    cursor: isSettings ? 'pointer' : 'default'
+                    cursor: isSettings ? 'pointer' : 'default',
+                    pointerEvents: 'auto'
                 });
-                
-                // Add click handler for settings messages
-                if (isSettings) {
-                    notifyDiv.addEventListener('click', () => {
-                        // Create a custom event to communicate with the extension
-                        window.postMessage({ type: 'AI_REWRITER_OPEN_SETTINGS' }, '*');
-                    });
-                    notifyDiv.title = 'Click to open extension settings';
-                }
-                
+
                 document.body.appendChild(notifyDiv);
-                
-                // Trigger animation
                 setTimeout(() => {
                     notifyDiv.style.opacity = '1';
-                    notifyDiv.style.transform = 'translateX(0)';
+                    notifyDiv.style.transform = 'translateX(0) scale(1)';
                 }, 10);
             } else {
-                notifyDiv.style.backgroundColor = errorFlag ? 'rgba(211, 47, 47, 0.95)' : 'rgba(46, 125, 50, 0.95)';
-                notifyDiv.style.border = errorFlag ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.2)';
                 notifyDiv.style.opacity = '1';
-                notifyDiv.style.transform = 'translateX(0)';
+                notifyDiv.style.transform = 'translateX(0) scale(1)';
                 notifyDiv.style.cursor = isSettings ? 'pointer' : 'default';
-                
-                // Update click handler
-                if (isSettings) {
-                    notifyDiv.onclick = () => {
-                        window.postMessage({ type: 'AI_REWRITER_OPEN_SETTINGS' }, '*');
-                    };
-                    notifyDiv.title = 'Click to open extension settings';
-                } else {
-                    notifyDiv.onclick = null;
-                    notifyDiv.title = '';
-                }
-                
                 if (notifyDiv.dataset.timeoutId) {
                     clearTimeout(parseInt(notifyDiv.dataset.timeoutId));
                 }
             }
-            
-            notifyDiv.textContent = msg;
-            
+
+            // High-resolution SVG indicators
+            let iconSvg = '';
+            if (type === 'loading') {
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;"><svg style="animation: aiSpin 0.9s linear infinite; width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg></div>`;
+            } else if (type === 'success') {
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: rgba(16, 185, 129, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
+            } else if (type === 'error') {
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: rgba(239, 68, 68, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>`;
+            } else if (type === 'warning') {
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>`;
+            } else {
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: rgba(99, 102, 241, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>`;
+            }
+
+            if (!document.getElementById('--ai-rewriter-toast-styles')) {
+                const styleEl = document.createElement('style');
+                styleEl.id = '--ai-rewriter-toast-styles';
+                styleEl.textContent = `@keyframes aiSpin { 100% { transform: rotate(360deg); } }`;
+                document.head.appendChild(styleEl);
+            }
+
+            notifyDiv.innerHTML = `${iconSvg} <div style="flex: 1; line-height: 1.4;">${msg}</div>`;
+
+            if (isSettings) {
+                notifyDiv.onclick = () => window.postMessage({ type: 'AI_REWRITER_OPEN_SETTINGS' }, '*');
+                notifyDiv.title = 'Click to open settings';
+            } else {
+                notifyDiv.onclick = null;
+                notifyDiv.title = '';
+            }
+
             const timeoutId = setTimeout(() => {
                 notifyDiv.style.opacity = '0';
-                notifyDiv.style.transform = 'translateX(100%)';
+                notifyDiv.style.transform = 'translateX(30px) scale(0.95)';
                 setTimeout(() => {
-                    if (notifyDiv.parentNode) {
-                        notifyDiv.parentNode.removeChild(notifyDiv);
-                    }
-                }, 300);
+                    if (notifyDiv.parentNode) notifyDiv.parentNode.removeChild(notifyDiv);
+                }, 250);
             }, durationMs);
-            
+
             notifyDiv.dataset.timeoutId = timeoutId.toString();
         },
-        args: [message, isError, duration, isSettingsMessage],
-    }).catch(err => { 
+        args: [cleanMsg, statusType, duration, isSettingsMessage]
+    }).catch(err => {
         console.error("Failed to inject notification script:", err);
     });
 }
@@ -1441,7 +1443,7 @@ async function showPreviewPopover(tabId, frameId, originalText, previewText, mod
         });
     } catch (error) {
         console.error("Failed to show preview popover:", error);
-        notifyUser(tabId, "❌ Failed to show preview. Try clicking in the text field first.", true);
+        notifyUser(tabId, "Failed to show preview. Try clicking in the text field first.", true);
     }
 }
 
@@ -1507,15 +1509,15 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
     // Store styles for cleanup
     const HIGHLIGHT_STYLES = {
         input: {
-            outline: '3px solid rgba(251, 191, 36, 0.8)',
+            outline: '3px solid rgba(99, 102, 241, 0.85)',
             outlineOffset: '2px',
-            boxShadow: '0 0 16px rgba(251, 191, 36, 0.5), 0 0 4px rgba(251, 191, 36, 0.3)'
+            boxShadow: '0 0 18px rgba(99, 102, 241, 0.45), 0 0 4px rgba(99, 102, 241, 0.3)'
         },
         mark: {
-            backgroundColor: 'rgba(251, 191, 36, 0.5)',
-            borderRadius: '2px',
-            boxShadow: '0 0 0 2px rgba(251, 191, 36, 0.3)',
-            padding: '1px 0'
+            backgroundColor: 'rgba(99, 102, 241, 0.25)',
+            borderRadius: '4px',
+            boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.35)',
+            padding: '2px 1px'
         }
     };
     
@@ -1545,13 +1547,11 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
             boxShadow: activeElement.style.boxShadow
         };
         
-        // Apply highlight styles directly (more reliable than classes)
+        // Apply highlight styles directly
         Object.assign(activeElement.style, HIGHLIGHT_STYLES.input);
         activeElement.dataset.aiRewriterHighlighted = 'true';
         highlightedElement = activeElement;
         isInputHighlight = true;
-        
-        console.log('Applied highlight to input/textarea:', activeElement.tagName);
     } else if (selection.rangeCount > 0 && !selection.isCollapsed) {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
@@ -1559,7 +1559,7 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
         popoverTop = rect.bottom + window.scrollY + 12;
         popoverLeft = Math.max(10, rect.left + window.scrollX);
         
-        // Try to highlight contentEditable selection with a mark element
+        // Highlight contentEditable selection with a mark element
         try {
             const highlightMark = document.createElement('mark');
             highlightMark.id = '--ai-rewriter-selection-mark';
@@ -1569,7 +1569,6 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
             try {
                 clonedRange.surroundContents(highlightMark);
                 highlightedElement = highlightMark;
-                console.log('Applied highlight mark to selection');
             } catch (e) {
                 console.log('Selection spans multiple elements, skipping highlight wrapping');
             }
@@ -1580,7 +1579,6 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
     
     // Helper function to remove highlight
     const removeHighlight = () => {
-        // Remove mark element highlight (for contentEditable)
         const mark = document.getElementById('--ai-rewriter-selection-mark');
         if (mark) {
             const parent = mark.parentNode;
@@ -1590,7 +1588,6 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
             parent.removeChild(mark);
         }
         
-        // Remove input/textarea inline style highlight
         document.querySelectorAll('[data-ai-rewriter-highlighted="true"]').forEach(el => {
             el.style.outline = '';
             el.style.outlineOffset = '';
@@ -1604,21 +1601,22 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
     popover.id = '--ai-rewriter-preview-popover';
     popover.dataset.previewId = previewId;
     
-    // Modern flat styling (no gradients)
     Object.assign(popover.style, {
         position: 'absolute',
         top: `${popoverTop}px`,
         left: `${popoverLeft}px`,
-        maxWidth: '450px',
-        minWidth: '320px',
-        maxHeight: '400px',
-        backgroundColor: '#ffffff',
-        borderRadius: '12px',
-        boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+        maxWidth: '460px',
+        minWidth: '340px',
+        maxHeight: '440px',
+        backgroundColor: 'rgba(255, 255, 255, 0.96)',
+        backdropFilter: 'blur(24px)',
+        webkitBackdropFilter: 'blur(24px)',
+        borderRadius: '16px',
+        boxShadow: '0 24px 48px -12px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.08)',
         zIndex: '2147483647',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
-        animation: 'aiRewriterFadeIn 0.2s ease-out'
+        animation: 'aiRewriterFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
     });
     
     // Add animation keyframes
@@ -1627,12 +1625,12 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
         style.id = '--ai-rewriter-keyframes';
         style.textContent = `
             @keyframes aiRewriterFadeIn {
-                from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+                from { opacity: 0; transform: translateY(-8px) scale(0.97); }
                 to { opacity: 1; transform: translateY(0) scale(1); }
             }
             @keyframes aiRewriterFadeOut {
                 from { opacity: 1; transform: translateY(0) scale(1); }
-                to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+                to { opacity: 0; transform: translateY(-8px) scale(0.97); }
             }
         `;
         document.head.appendChild(style);
@@ -1644,9 +1642,9 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '16px 20px',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-        backgroundColor: '#3b82f6',
+        padding: '14px 18px',
+        borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
         color: 'white'
     });
     
@@ -1655,27 +1653,37 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        fontSize: '14px',
-        fontWeight: '600'
+        fontSize: '13.5px',
+        fontWeight: '700',
+        letterSpacing: '-0.01em'
     });
-    title.innerHTML = `<span style="font-size: 16px;">✨</span> AI Suggestion`;
+    title.innerHTML = `
+        <svg style="width: 17px; height: 17px; flex-shrink: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+        </svg>
+        <span>AI Rewrite Preview</span>
+    `;
     
     const closeBtn = document.createElement('button');
     Object.assign(closeBtn.style, {
-        background: 'rgba(255, 255, 255, 0.2)',
+        background: 'rgba(255, 255, 255, 0.18)',
         border: 'none',
-        borderRadius: '8px',
-        padding: '6px 10px',
+        borderRadius: '50%',
+        width: '26px',
+        height: '26px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         cursor: 'pointer',
         color: 'white',
-        fontSize: '14px',
-        fontWeight: '500',
-        transition: 'background 0.15s ease'
+        fontSize: '13px',
+        fontWeight: '700',
+        transition: 'all 0.15s ease'
     });
-    closeBtn.textContent = '✕';
+    closeBtn.innerHTML = `<svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
     closeBtn.title = 'Cancel';
     closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(255, 255, 255, 0.3)';
-    closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+    closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255, 255, 255, 0.18)';
     closeBtn.onclick = () => {
         removeHighlight();
         popover.style.animation = 'aiRewriterFadeOut 0.15s ease-out forwards';
@@ -1689,14 +1697,15 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
     // Content area
     const content = document.createElement('div');
     Object.assign(content.style, {
-        padding: '16px 20px',
-        maxHeight: '220px',
+        padding: '16px 18px',
+        maxHeight: '230px',
         overflowY: 'auto',
-        fontSize: '14px',
-        lineHeight: '1.6',
-        color: '#1f2937',
+        fontSize: '13.5px',
+        lineHeight: '1.65',
+        color: '#0f172a',
         whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word'
+        wordBreak: 'break-word',
+        backgroundColor: '#ffffff'
     });
     content.textContent = previewText;
     
@@ -1705,20 +1714,20 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
     Object.assign(footer.style, {
         display: 'flex',
         gap: '10px',
-        padding: '16px 20px',
-        borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-        backgroundColor: 'rgba(249, 250, 251, 0.8)'
+        padding: '12px 18px',
+        borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+        backgroundColor: 'rgba(248, 250, 252, 0.95)'
     });
     
     // Cancel button
     const cancelBtn = document.createElement('button');
     Object.assign(cancelBtn.style, {
         flex: '1',
-        padding: '10px 16px',
-        border: '1px solid #e5e7eb',
+        padding: '9px 16px',
+        border: '1px solid #e2e8f0',
         borderRadius: '10px',
-        background: 'white',
-        color: '#374151',
+        background: '#ffffff',
+        color: '#475569',
         fontSize: '13px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -1727,12 +1736,12 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
     });
     cancelBtn.textContent = 'Cancel';
     cancelBtn.onmouseover = () => {
-        cancelBtn.style.background = '#f3f4f6';
-        cancelBtn.style.borderColor = '#d1d5db';
+        cancelBtn.style.background = '#f1f5f9';
+        cancelBtn.style.borderColor = '#cbd5e1';
     };
     cancelBtn.onmouseout = () => {
-        cancelBtn.style.background = 'white';
-        cancelBtn.style.borderColor = '#e5e7eb';
+        cancelBtn.style.background = '#ffffff';
+        cancelBtn.style.borderColor = '#e2e8f0';
     };
     cancelBtn.onclick = () => {
         removeHighlight();
@@ -1745,24 +1754,29 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
     const insertBtn = document.createElement('button');
     Object.assign(insertBtn.style, {
         flex: '1',
-        padding: '10px 16px',
+        padding: '9px 16px',
         border: 'none',
         borderRadius: '10px',
-        backgroundColor: '#3b82f6',
-        color: 'white',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+        color: '#ffffff',
         fontSize: '13px',
-        fontWeight: '600',
+        fontWeight: '700',
         cursor: 'pointer',
         transition: 'all 0.15s ease',
-        fontFamily: 'inherit'
+        fontFamily: 'inherit',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '6px',
+        boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)'
     });
-    insertBtn.textContent = '✓ Insert';
+    insertBtn.innerHTML = `<svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Insert Text</span>`;
     insertBtn.onmouseover = () => {
-        insertBtn.style.backgroundColor = '#2563eb';
+        insertBtn.style.background = 'linear-gradient(135deg, #4338ca 0%, #3730a3 100%)';
         insertBtn.style.transform = 'translateY(-1px)';
     };
     insertBtn.onmouseout = () => {
-        insertBtn.style.backgroundColor = '#3b82f6';
+        insertBtn.style.background = 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)';
         insertBtn.style.transform = 'translateY(0)';
     };
     insertBtn.onclick = () => {
@@ -1797,12 +1811,9 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
         // Calculate position above the selection
         if (selectionRect) {
             const newTop = selectionRect.top + window.scrollY - popoverRect.height - 12;
-            // Only move above if there's room, otherwise keep below but scroll into view
             if (newTop > 10) {
                 popover.style.top = `${newTop}px`;
             } else {
-                // Not enough room above either, position at top of viewport
-                popover.style.top = `${window.scrollY + 10}px`;
                 popover.style.position = 'fixed';
                 popover.style.top = '10px';
             }
@@ -1811,7 +1822,6 @@ function createPreviewPopoverUI(previewId, previewText, originalText) {
         }
     }
     
-    // Focus the insert button for keyboard accessibility
     insertBtn.focus();
 }
 
@@ -1843,11 +1853,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         storeForUndo(previewData.tabId, previewData.frameId, previewData.originalText);
                     }
                     
-                    notifyUser(previewData.tabId, "✅ Text inserted successfully!", false, 2000);
+                    notifyUser(previewData.tabId, "Text inserted successfully!", false, 2000);
                     pendingPreviews.delete(message.previewId);
                 } catch (error) {
                     console.error("Preview insert failed:", error);
-                    notifyUser(previewData.tabId, "❌ Failed to insert text", true);
+                    notifyUser(previewData.tabId, "Failed to insert text", true);
                 }
             })();
         }
@@ -1886,7 +1896,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     
     if (!isValidTab(tab)) {
         console.warn("Cannot run on this tab (restricted URL):", tab.url);
-        notifyUser(tab.id, "❌ Cannot use shortcuts on this page", true);
+        notifyUser(tab.id, "Cannot use shortcuts on this page", true);
         return;
     }
 
@@ -1921,7 +1931,7 @@ async function executeShortcutRewrite(tab, mode) {
         const isLocal = settings.openaiBaseUrl && (settings.openaiBaseUrl.includes('localhost') || settings.openaiBaseUrl.includes('127.0.0.1'));
         // Validate API key first (skip for local endpoints)
         if (!isLocal && (!settings.openaiApiKey || settings.openaiApiKey.trim() === '')) {
-            notifyUser(tab.id, "❌ No API key configured - Click to open settings", true, 6000);
+            notifyUser(tab.id, "No API key configured - Click to open settings", true, 6000);
             showApiKeyNotification();
             return;
         }
@@ -1952,23 +1962,23 @@ async function executeShortcutRewrite(tab, mode) {
         const result = results[0]?.result;
         
         if (!result?.hasSelection) {
-            notifyUser(tab.id, "⚠️ Please select text first", true);
+            notifyUser(tab.id, "Please select text first", true);
             return;
         }
         
         if (!result.isEditable) {
-            notifyUser(tab.id, "⚠️ Please select text in an editable field", true);
+            notifyUser(tab.id, "Please select text in an editable field", true);
             return;
         }
         
         if (result.selectedText.length > settings.maxTextLength) {
-            notifyUser(tab.id, `⚠️ Text too long (max ${settings.maxTextLength} characters)`, true);
+            notifyUser(tab.id, `Text too long (max ${settings.maxTextLength} characters)`, true);
             return;
         }
 
         // Check rate limiting
         if (!checkRateLimit()) {
-            notifyUser(tab.id, "⏳ Too many requests. Please wait a moment.", true);
+            notifyUser(tab.id, "Too many requests. Please wait a moment.", true);
             return;
         }
 
@@ -1976,7 +1986,7 @@ async function executeShortcutRewrite(tab, mode) {
         
         // Show progress
         const modeName = BUILT_IN_MODES[mode]?.name || mode;
-        notifyUser(tab.id, `🤖 Rewriting (${modeName})...`, false, 2000);
+        notifyUser(tab.id, `Rewriting with AI (${modeName})...`, false, 2500);
 
         // Store original text for undo
         if (settings.enableUndo) {
@@ -2005,7 +2015,7 @@ async function executeShortcutRewrite(tab, mode) {
                     await trackUsage(mode, result.selectedText.length, resultText.length);
                 }
                 
-                notifyUser(tab.id, "✅ Text rewritten successfully!", false, 2000);
+                notifyUser(tab.id, "Text rewritten successfully!", false, 2000);
             }
         } else {
             throw new Error("Empty response from AI");
@@ -2014,7 +2024,7 @@ async function executeShortcutRewrite(tab, mode) {
     } catch (error) {
         console.error(`Keyboard shortcut rewrite failed:`, error);
         const errorMsg = getUserFriendlyError(error);
-        notifyUser(tab.id, `❌ ${errorMsg}`, true);
+        notifyUser(tab.id, errorMsg, true);
         
         // Show additional help for common errors
         if (error.message && (error.message.includes('API key') || error.message.includes('401') || error.message.includes('403'))) {
