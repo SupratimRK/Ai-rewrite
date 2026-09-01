@@ -403,11 +403,12 @@ async function loadAllSettings() {
 
 function getTemperatureBadgeText(val) {
     val = parseFloat(val);
-    if (val <= 0.3) return `${val.toFixed(2)} (Conservative - Minimal Changes)`;
+    if (val <= 0.3) return `${val.toFixed(2)} (Strict - Minimal Changes)`;
     if (val <= 0.65) return `${val.toFixed(2)} (Subtle - Polished & Accurate)`;
     if (val <= 0.95) return `${val.toFixed(2)} (Balanced - Recommended)`;
-    if (val <= 1.25) return `${val.toFixed(2)} (Creative - Expressive)`;
-    return `${val.toFixed(2)} (Aggressive - High Variance)`;
+    if (val <= 1.35) return `${val.toFixed(2)} (Creative - Expressive)`;
+    if (val <= 1.70) return `${val.toFixed(2)} (High Variance - Bold)`;
+    return `${val.toFixed(2)} (Wild - Maximum Creativity)`;
 }
 
 function populateDefaultRewriteModes(selectedKey = 'retone') {

@@ -15,6 +15,58 @@
     
     <!-- Precompiled Tailored CSS (100% Manifest V3 CSP Compliant, Zero-JS Styling) -->
     <link rel="stylesheet" href="options.css">
+
+    <style>
+        /* Modern Gradient Range Slider */
+        #temperatureSlider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 7px;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            outline: none;
+            cursor: pointer;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 10px rgba(99, 102, 241, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        #temperatureSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3.5px solid #6366f1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 12px rgba(99, 102, 241, 0.8);
+            cursor: pointer;
+            transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        #temperatureSlider::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+            border-color: #8b5cf6;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 20px rgba(139, 92, 246, 1);
+        }
+
+        #temperatureSlider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3.5px solid #6366f1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 12px rgba(99, 102, 241, 0.8);
+            cursor: pointer;
+            transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        #temperatureSlider::-moz-range-thumb:hover {
+            transform: scale(1.25);
+            border-color: #8b5cf6;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 20px rgba(139, 92, 246, 1);
+        }
+    </style>
 </head>
 
 <body class="bg-slate-100 text-slate-800 dark:bg-[#090d16] dark:text-slate-100 min-h-screen py-8 px-4 transition-colors duration-300">
@@ -174,12 +226,12 @@
                         </label>
                         <span id="temperatureValueBadge" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-mono">0.80 (Balanced)</span>
                     </div>
-                    <input type="range" id="temperatureSlider" min="0.0" max="1.5" step="0.05" value="0.8" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                    <input type="range" id="temperatureSlider" min="0.0" max="2.0" step="0.05" value="0.8" class="w-full h-2 bg-transparent rounded-lg appearance-none cursor-pointer">
                     <div class="flex justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-2 px-0.5">
-                        <span>0.0 Conservative (Precise)</span>
-                        <span>0.8 Balanced</span>
-                        <span>1.2 Expressive</span>
-                        <span>1.5 Aggressive (Creative)</span>
+                        <span>0.0 Strict / Precise</span>
+                        <span>0.7 Balanced</span>
+                        <span>1.3 Creative</span>
+                        <span>2.0 Wild & Bold</span>
                     </div>
                 </div>
 

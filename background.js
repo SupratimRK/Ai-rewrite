@@ -2006,15 +2006,16 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     let cleanModeTitle = (modeName || 'Rewrite').split('(')[0].replace(/^Fix\s+/i, '').replace(/\s+Tone$/i, '').trim();
     if (!cleanModeTitle) cleanModeTitle = 'Rewrite';
 
-    // Sparkle Brand Glass Badge
+    // Official Brand Icon Badge
+    const brandIconUrl = chrome.runtime.getURL('icons/icon48.png');
     const badge = document.createElement('div');
     badge.style.display = 'flex';
     badge.style.alignItems = 'center';
-    badge.style.gap = '7px';
+    badge.style.gap = '8px';
     badge.style.paddingRight = '2px';
     badge.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 10px rgba(99,102,241,0.5);flex-shrink:0;">
-            <svg style="width:13px;height:13px;" fill="white" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
+        <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(139,92,246,0.3));border:1px solid rgba(255,255,255,0.25);box-shadow:0 0 10px rgba(99,102,241,0.5);flex-shrink:0;overflow:hidden;padding:2px;">
+            <img src="${brandIconUrl}" alt="Brand" style="width:100%;height:100%;object-fit:contain;border-radius:50%;">
         </div>
         <span style="font-size:12.5px;font-weight:700;color:#f8fafc;letter-spacing:-0.01em;white-space:nowrap;">${cleanModeTitle}</span>
     `;

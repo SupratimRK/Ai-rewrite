@@ -66,6 +66,17 @@
       "description": "Undo last rewrite (Configurable in chrome://extensions/shortcuts)"
     }
   },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*",
+        "icons/glass/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

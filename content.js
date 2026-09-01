@@ -57,8 +57,11 @@ window.addEventListener('message', (event) => {
         safeSendMessage({ action: 'getFloatingButtonSettings' }, (res) => {
             if (res) {
                 cachedSettings = res;
-                if (!cachedSettings.enableFloatingButton && buttonEl) {
-                    buttonEl.style.display = 'none';
+                if (buttonEl) {
+                    buttonEl.title = `Rewrite with AI (${cachedSettings.defaultModeName || 'Retone'})`;
+                    if (!cachedSettings.enableFloatingButton) {
+                        buttonEl.style.display = 'none';
+                    }
                 }
             }
         });
@@ -76,53 +79,46 @@ window.addEventListener('message', (event) => {
                 z-index: 2147483640;
                 display: flex;
                 align-items: center;
-                gap: 5px;
-                padding: 4px 9px 4px 6px;
-                height: 28px;
-                border-radius: 9999px;
-                background: rgba(15, 23, 42, 0.92);
+                justify-content: center;
+                width: 26px;
+                height: 26px;
+                padding: 0;
+                border-radius: 50%;
+                background: rgba(15, 23, 42, 0.94);
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
-                color: #ffffff;
-                font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-                font-size: 11px;
-                font-weight: 700;
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.5), 0 0 10px rgba(99, 102, 241, 0.4);
                 cursor: pointer;
                 user-select: none;
                 opacity: 0;
-                transform: scale(0.92) translateY(4px);
-                transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s, border-color 0.15s;
+                transform: scale(0.85);
+                transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s, border-color 0.15s;
                 pointer-events: auto;
+                box-sizing: border-box;
             }
             #--ai-rewriter-quick-btn.visible {
-                opacity: 1;
-                transform: scale(1) translateY(0);
+                opacity: 0.9;
+                transform: scale(1);
             }
             #--ai-rewriter-quick-btn:hover {
-                background: rgba(30, 41, 59, 0.98);
-                border-color: rgba(99, 102, 241, 0.7);
-                box-shadow: 0 6px 20px -2px rgba(99, 102, 241, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.5);
-                transform: scale(1.04) translateY(-1px);
+                opacity: 1;
+                transform: scale(1.15);
+                border-color: rgba(99, 102, 241, 0.9);
+                box-shadow: 0 6px 20px -2px rgba(99, 102, 241, 0.6), 0 0 0 2px rgba(99, 102, 241, 0.4);
             }
-            #--ai-rewriter-quick-btn .btn-sparkle-icon {
-                width: 17px;
-                height: 17px;
+            #--ai-rewriter-quick-btn img.btn-brand-img {
+                width: 16px;
+                height: 16px;
+                object-fit: contain;
                 border-radius: 50%;
-                background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+                pointer-events: none;
+                transition: transform 0.15s ease;
             }
-            #--ai-rewriter-quick-btn .btn-sparkle-icon svg {
-                width: 9.5px;
-                height: 9.5px;
-                fill: white;
+            #--ai-rewriter-quick-btn.loading {
+                border-color: #6366f1;
             }
-            #--ai-rewriter-quick-btn.loading .btn-sparkle-icon svg {
+            #--ai-rewriter-quick-btn.loading img.btn-brand-img {
                 animation: aiQuickSpin 0.8s linear infinite;
             }
             @keyframes aiQuickSpin {
@@ -141,16 +137,14 @@ window.addEventListener('message', (event) => {
         buttonEl.id = '--ai-rewriter-quick-btn';
         buttonEl.setAttribute('role', 'button');
         buttonEl.setAttribute('tabindex', '-1');
-        buttonEl.title = 'Click to quickly rewrite with AI';
+        buttonEl.title = `Rewrite with AI (${cachedSettings.defaultModeName || 'Retone'})`;
 
+        const brandIconUrl = chrome.runtime.getURL('icons/icon48.png');
         buttonEl.innerHTML = `
-            <div class="btn-sparkle-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
-            </div>
-            <span class="btn-label">Rewrite</span>
+            <img class="btn-brand-img" src="${brandIconUrl}" alt="AI">
         `;
 
-        // Click handler
+        // Prevent focus loss on click
         buttonEl.addEventListener('mousedown', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -199,8 +193,6 @@ window.addEventListener('message', (event) => {
 
         const btn = getOrCreateButton();
         btn.classList.add('loading');
-        const label = btn.querySelector('.btn-label');
-        if (label) label.textContent = 'Writing...';
 
         safeSendMessage({
             action: 'triggerQuickRewrite',
@@ -208,12 +200,11 @@ window.addEventListener('message', (event) => {
         }, () => {
             setTimeout(() => {
                 btn.classList.remove('loading');
-                if (label) label.textContent = cachedSettings.defaultModeName || 'Rewrite';
             }, 600);
         });
     }
 
-    // Position floating button near the bottom-right of the active editor
+    // Position floating bubble neatly at the end/bottom-right of the active editor
     function updateButtonPosition(el) {
         if (!el || !cachedSettings.enableFloatingButton) {
             hideButton();
@@ -228,29 +219,30 @@ window.addEventListener('message', (event) => {
 
         const rect = el.getBoundingClientRect();
         // If element is not visible or too small
-        if (rect.width < 50 || rect.height < 20 || rect.bottom < 0 || rect.top > window.innerHeight) {
+        if (rect.width < 40 || rect.height < 18 || rect.bottom < 0 || rect.top > window.innerHeight) {
             hideButton();
             return;
         }
 
         const btn = getOrCreateButton();
-        const label = btn.querySelector('.btn-label');
-        if (label && !btn.classList.contains('loading')) {
-            label.textContent = cachedSettings.defaultModeName || 'Rewrite';
-        }
+        btn.title = `Rewrite with AI (${cachedSettings.defaultModeName || 'Retone'})`;
 
-        // Calculate bottom-right inside/attached position
-        let top = rect.bottom + window.scrollY - 34;
-        let left = rect.right + window.scrollX - 96;
+        // Calculate positioning
+        let top, left;
 
-        // If field is too short (single-line input), place slightly outside on the right or below
-        if (rect.height < 40) {
-            top = rect.top + window.scrollY + (rect.height - 28) / 2;
-            left = rect.right + window.scrollX - 88;
+        // For single-line inputs
+        if (rect.height < 42) {
+            top = rect.top + window.scrollY + (rect.height - 26) / 2;
+            left = rect.right + window.scrollX - 30;
+        } else {
+            // For multi-line textareas and rich text editors (WhatsApp, Reddit, etc.)
+            top = rect.bottom + window.scrollY - 32;
+            left = rect.right + window.scrollX - 32;
         }
 
         // Keep within viewport bounds
-        left = Math.max(10, Math.min(window.innerWidth - 110, left));
+        left = Math.max(8, Math.min(window.innerWidth - 36, left));
+        top = Math.max(8, top);
 
         btn.style.top = `${top}px`;
         btn.style.left = `${left}px`;
@@ -273,7 +265,7 @@ window.addEventListener('message', (event) => {
         }
     }
 
-    // Listeners for focus, input, and typing
+    // Check if element is an editable target
     function isEditable(el) {
         if (!el || el === document.body) return false;
         if (el.tagName === 'TEXTAREA') return true;
