@@ -369,85 +369,70 @@ Yeah, sometimes technology just says "NOPE". 🙅‍♂️ Here's a comprehensiv
 
 ---
 
-## 📈 Performance Tips
+## 📈 Performance & Model Selection Tips
 
-1. **Choose the Right Model**:
-   - Gemini 1.5 Flash: Fastest, most cost-effective
-   - Gemini 1.5 Pro: More capable, better for complex tasks
-   - Gemini 2.0 Flash: Latest features, experimental
+1. **Choose the Right Provider & Model**:
+   - **OpenAI (`chat-latest` / `gpt-4o-mini`)**: High-accuracy, balanced tone adaptation and rapid responses.
+   - **Google Gemini (`gemini-flash-lite-latest`)**: Ultra-fast latency and cost-effective daily rewriting.
+   - **Groq (`llama-3.3-70b-versatile`)**: Near-instant inference speed for real-time drafting.
+   - **DeepSeek (`deepseek-v4-flash`)**: Sophisticated reasoning and nuanced vocabulary enhancement.
+   - **Ollama / LM Studio (Local)**: 100% private, zero-cost offline rewriting with models like `llama3.2` or `qwen2.5`.
 
-2. **Optimize Text Length**:
-   - Keep selections under 2000 characters for best speed
-   - Break long documents into smaller sections
-   - Use concise mode for lengthy content
+2. **Adjust Aggressiveness**:
+   - Use `0.0 - 0.3` (Strict) for error-free proofreading and academic precision.
+   - Use `0.7 - 0.9` (Balanced) for general email and communication polish.
+   - Use `1.2 - 2.0` (Creative / Wild) for marketing copy and storytelling.
 
-3. **Use Custom Modes**:
-   - Create specific prompts for recurring tasks
-   - More targeted results than generic modes
-   - Save time with personalized workflows
+3. **Optimize Text Length**:
+   - For rapid responses, keep single selections under 4,000 characters.
+   - Use the **Concise** mode for condensing long summaries.
 
 ---
 
 ## 🔮 Future Roadmap
 
-- 🌐 **Multi-language Support** - Rewrite in different languages
-- 🔊 **Voice Input** - Dictate text for rewriting
-- 📱 **Mobile Support** - Browser extension for mobile
-- 🤖 **AI Model Comparison** - Side-by-side results
-- 📝 **Template Library** - Pre-made prompts for common tasks
-- 🔗 **Integration APIs** - Connect with other writing tools
-- 📊 **Advanced Analytics** - Writing improvement insights
+- 🌐 **Multi-language Auto-Detection & Translation**
+- 🔊 **Voice Input Dictation & Polish**
+- 📱 **Mobile Browser Compatibility**
+- 🤖 **Side-by-Side Model Comparison Studio**
+- 📝 **Cloud Sync for Custom Prompt Templates**
+- 📊 **Advanced Writing Style Insights**
 
 ---
 
-## 💡 Contributing (Got Ideas? Found Bugs?) 💡🐛
+## 💡 Contributing
 
-Hey, if you have ideas to make this less buggy or more awesome, or if you found a hilarious bug (like it rewriting everything into pirate speak 🏴‍☠️ - which would be kinda cool, actually), feel free to:
+Contributions, bug reports, and feature suggestions are welcome!
 
-*   Open an issue on the GitHub repository (if this *is* on GitHub... otherwise, uh... tell the developer?).
-*   Fork it, fix it, and submit a pull request (again, GitHub stuff).
-
-We appreciate the help making this thing slightly less likely to explode. 🔥
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
-## 📜 License (The Legal Mumbo Jumbo) 📜
+## 📜 License
 
-This extension is licensed under the **MIT License**.
-
-Basically, this means you can do almost whatever you want with this code (use it, copy it, modify it, sell it - though good luck with that!), as long as you include the original copyright and license notice.
-
-**BUT, there's NO WARRANTY.** If this extension accidentally deletes your masterpiece novel, formats your hard drive, or makes your coffee cold... tough luck. Use at your own risk! 😉
+Distributed under the **MIT License**. See `LICENSE` for more information.
 
 ---
 
 ## 📝 Acknowledgments & Credits
 
-- **Google Gemini AI** - Powering the intelligence behind every rewrite
-- **Chrome Extension APIs** - Making seamless integration possible
-- **Open Source Community** - Inspiration and best practices
-- **Beta Testers** - Feedback that shaped this extension
-- Special thanks to the Gemini, OpenAI and Anthropic team for their amazing AI technology!
-- Thanks to the Chrome extension development community for all the resources and inspiration! 🙌
-- And a big shoutout to you, the user! Thanks for trying out this extension and making the internet a slightly more interesting place! 🌍✨
+- **OpenAI, Google Gemini, Anthropic, Groq, and DeepSeek** for powering the frontier AI models behind every rewrite.
+- **Chrome Extensions Platform & Manifest V3** for powerful web integration APIs.
+- **Open Source Community** for modern toolkits and feedback.
 
 ---
 
 ## 💝 Support the Project
 
-Enjoying AI Text Rewriter Pro? Here's how you can help:
+If you find **AI Text Rewriter Pro** helpful:
 
-1. ⭐ **Star the repository** (if open source)
-2. 💬 **Share with friends** who write content
-3. 🐛 **Report bugs** to help improve the extension
-4. 💡 **Suggest features** for future versions
-5. ☕ **Buy me a chai** (because coffee is overrated!)
+1. ⭐ **Star the repository on GitHub**
+2. 💬 **Share it with your colleagues and friends**
+3. 🐛 **Report bugs & suggest new features**
+4. 🫖 **[Buy me a chai](https://smrk.in)**
 
---- 
-If you like this extension, consider buying me a coffee! ☕ (Just kidding, I don't drink coffee. But I appreciate the thought!)
-
-**Transform your writing today with AI Text Rewriter Pro!** ✨
-
-*Made with 💙 and lots of ☕ (actually 🫖 chai) by Supratim*
-
-**Happy Rewriting! May your words be ever in your favor!** ✨
+*Made with 💙 and 🫖 chai by [Supratim](https://smrk.in)*
