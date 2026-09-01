@@ -1392,15 +1392,15 @@ function notifyUser(tabId, message, isError = false, duration = 4000) {
     });
 }
 
-// === PREVIEW POPOVER SYSTEM ===
-// Store pending preview data for when user clicks Insert
+// === IN-PLACE INLINE PREVIEW & SLIM ACTION PANEL ===
 let pendingPreviews = new Map();
 
 async function showPreviewPopover(tabId, frameId, originalText, previewText, modeKey, settings) {
-    console.log("Showing preview popover in tab:", tabId);
+    console.log("Showing in-place preview in tab:", tabId);
     
     // Generate unique preview ID
     const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const modeName = BUILT_IN_MODES[modeKey]?.name || modeKey;
     
     // Store preview data for later use
     pendingPreviews.set(previewId, {
@@ -1422,407 +1422,320 @@ async function showPreviewPopover(tabId, frameId, originalText, previewText, mod
     }
     
     try {
-        // First, capture the current selection state before showing popover
-        const selectionResult = await chrome.scripting.executeScript({
-            target: { tabId: tabId, frameIds: frameId ? [frameId] : undefined },
-            func: captureSelectionState
-        });
-        
-        const selectionState = selectionResult[0]?.result;
-        if (selectionState) {
-            // Store selection state with the preview data
-            const previewData = pendingPreviews.get(previewId);
-            previewData.selectionState = selectionState;
-            pendingPreviews.set(previewId, previewData);
-        }
-        
         await chrome.scripting.executeScript({
             target: { tabId: tabId, frameIds: frameId ? [frameId] : undefined },
-            func: createPreviewPopoverUI,
-            args: [previewId, previewText, originalText]
+            func: createInlinePreviewUI,
+            args: [previewId, previewText, originalText, modeName]
         });
     } catch (error) {
-        console.error("Failed to show preview popover:", error);
-        notifyUser(tabId, "Failed to show preview. Try clicking in the text field first.", true);
+        console.error("Failed to show in-place preview:", error);
+        notifyUser(tabId, "Failed to preview rewrite. Try clicking in the text field first.", true);
     }
 }
 
-// Function to capture the current selection state before showing popover
-function captureSelectionState() {
-    const activeElement = document.activeElement;
-    const selection = window.getSelection();
-    
-    if (!activeElement) {
-        return null;
-    }
-    
-    // For textarea and input elements
-    if (activeElement.tagName === 'TEXTAREA' || 
-        (activeElement.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeElement.type))) {
-        
-        const start = activeElement.selectionStart;
-        const end = activeElement.selectionEnd;
-        
-        if (start !== end) {
-            // Generate a unique ID for referring to this element
-            if (!activeElement.dataset.aiRewriterId) {
-                activeElement.dataset.aiRewriterId = 'element_' + Math.random().toString(36).substr(2, 9);
-            }
-            
-            return {
-                type: 'input',
-                elementId: activeElement.dataset.aiRewriterId,
-                tagName: activeElement.tagName,
-                selectionStart: start,
-                selectionEnd: end,
-                value: activeElement.value
-            };
+// Function that runs in page context to overwrite text and attach slim action panel
+function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
+    // Remove any existing preview panel or highlight
+    const oldPanel = document.getElementById('--ai-rewriter-inline-panel');
+    if (oldPanel) {
+        if (typeof oldPanel._revert === 'function') {
+            oldPanel._revert();
         }
+        oldPanel.remove();
     }
-    // For contentEditable elements
-    else if (activeElement.isContentEditable && selection.rangeCount > 0 && !selection.isCollapsed) {
-        // Generate a unique ID for referring to this element
-        if (!activeElement.dataset.aiRewriterId) {
-            activeElement.dataset.aiRewriterId = 'element_' + Math.random().toString(36).substr(2, 9);
-        }
-        
-        const range = selection.getRangeAt(0);
-        
-        return {
-            type: 'contentEditable',
-            elementId: activeElement.dataset.aiRewriterId,
-            selectedText: selection.toString()
-        };
-    }
-    
-    return null;
-}
 
-// Function that runs in the page context to create the popover UI
-function createPreviewPopoverUI(previewId, previewText, originalText) {
-    // Remove any existing preview popover
-    const existingPopover = document.getElementById('--ai-rewriter-preview-popover');
-    if (existingPopover) {
-        existingPopover.remove();
-    }
-    
-    // Store styles for cleanup
-    const HIGHLIGHT_STYLES = {
-        input: {
-            outline: '3px solid rgba(99, 102, 241, 0.85)',
-            outlineOffset: '2px',
-            boxShadow: '0 0 18px rgba(99, 102, 241, 0.45), 0 0 4px rgba(99, 102, 241, 0.3)'
-        },
-        mark: {
-            backgroundColor: 'rgba(99, 102, 241, 0.25)',
-            borderRadius: '4px',
-            boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.35)',
-            padding: '2px 1px'
-        }
-    };
-    
-    // Get selection position for popover placement and highlight the selection
     const activeElement = document.activeElement;
     const selection = window.getSelection();
-    let popoverTop = 100;
-    let popoverLeft = 100;
-    let highlightedElement = null;
-    let originalStyles = null;
-    let isInputHighlight = false;
-    let selectionRect = null;
-    
-    // Determine position and apply highlighting based on element type
+
+    let targetType = 'none';
+    let targetInput = null;
+    let inputStart = 0;
+    let inputEnd = 0;
+    let originalValue = '';
+    let markElement = null;
+    let anchorRect = null;
+
+    // 1. In-place overwrite for Textarea and Input
     if (activeElement && (activeElement.tagName === 'TEXTAREA' || 
         (activeElement.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeElement.type)))) {
-        // For input/textarea, use element's bounding rect
-        const rect = activeElement.getBoundingClientRect();
-        selectionRect = rect;
-        popoverTop = rect.bottom + window.scrollY + 12;
-        popoverLeft = Math.max(10, rect.left + window.scrollX);
-        
-        // Store original styles for restoration
-        originalStyles = {
-            outline: activeElement.style.outline,
-            outlineOffset: activeElement.style.outlineOffset,
-            boxShadow: activeElement.style.boxShadow
-        };
-        
-        // Apply highlight styles directly
-        Object.assign(activeElement.style, HIGHLIGHT_STYLES.input);
-        activeElement.dataset.aiRewriterHighlighted = 'true';
-        highlightedElement = activeElement;
-        isInputHighlight = true;
-    } else if (selection.rangeCount > 0 && !selection.isCollapsed) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        selectionRect = rect;
-        popoverTop = rect.bottom + window.scrollY + 12;
-        popoverLeft = Math.max(10, rect.left + window.scrollX);
-        
-        // Highlight contentEditable selection with a mark element
-        try {
-            const highlightMark = document.createElement('mark');
-            highlightMark.id = '--ai-rewriter-selection-mark';
-            Object.assign(highlightMark.style, HIGHLIGHT_STYLES.mark);
-            
-            const clonedRange = range.cloneRange();
-            try {
-                clonedRange.surroundContents(highlightMark);
-                highlightedElement = highlightMark;
-            } catch (e) {
-                console.log('Selection spans multiple elements, skipping highlight wrapping');
-            }
-        } catch (e) {
-            console.log('Could not highlight selection:', e);
-        }
+        targetType = 'input';
+        targetInput = activeElement;
+        inputStart = activeElement.selectionStart;
+        inputEnd = activeElement.selectionEnd;
+        originalValue = activeElement.value;
+
+        // Overwrite selected portion with rewritten text
+        const before = originalValue.substring(0, inputStart);
+        const after = originalValue.substring(inputEnd);
+        activeElement.value = before + previewText + after;
+
+        // Select the newly overwritten text
+        const newEnd = inputStart + previewText.length;
+        activeElement.setSelectionRange(inputStart, newEnd);
+        activeElement.focus();
+
+        // Highlight input field with glowing ring
+        activeElement.dataset.aiRewriterPreviewing = 'true';
+        activeElement.style.outline = '2px solid #6366f1';
+        activeElement.style.outlineOffset = '2px';
+        activeElement.style.boxShadow = '0 0 0 4px rgba(99, 102, 241, 0.22), 0 0 16px rgba(99, 102, 241, 0.35)';
+
+        // Dispatch input event for frameworks (React, Vue, etc.)
+        activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+        anchorRect = activeElement.getBoundingClientRect();
     }
-    
-    // Helper function to remove highlight
-    const removeHighlight = () => {
-        const mark = document.getElementById('--ai-rewriter-selection-mark');
-        if (mark) {
-            const parent = mark.parentNode;
-            while (mark.firstChild) {
-                parent.insertBefore(mark.firstChild, mark);
-            }
-            parent.removeChild(mark);
-        }
-        
-        document.querySelectorAll('[data-ai-rewriter-highlighted="true"]').forEach(el => {
-            el.style.outline = '';
-            el.style.outlineOffset = '';
-            el.style.boxShadow = '';
-            delete el.dataset.aiRewriterHighlighted;
-        });
-    };
-    
-    // Create popover container
-    const popover = document.createElement('div');
-    popover.id = '--ai-rewriter-preview-popover';
-    popover.dataset.previewId = previewId;
-    
-    Object.assign(popover.style, {
+    // 2. In-place overwrite for contentEditable
+    else if (activeElement && activeElement.isContentEditable && selection.rangeCount > 0) {
+        targetType = 'contentEditable';
+        const range = selection.getRangeAt(0);
+        anchorRect = range.getBoundingClientRect();
+
+        // Delete selection contents and insert highlighted mark with new text
+        range.deleteContents();
+        markElement = document.createElement('mark');
+        markElement.id = '--ai-rewriter-preview-mark';
+        markElement.style.backgroundColor = 'rgba(99, 102, 241, 0.18)';
+        markElement.style.borderBottom = '2px solid #6366f1';
+        markElement.style.borderRadius = '4px';
+        markElement.style.padding = '2px 4px';
+        markElement.style.color = 'inherit';
+        markElement.style.boxShadow = '0 0 12px rgba(99, 102, 241, 0.3)';
+        markElement.textContent = previewText;
+
+        range.insertNode(markElement);
+        selection.removeAllRanges();
+
+        // Dispatch input event
+        activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+        anchorRect = markElement.getBoundingClientRect();
+    }
+
+    if (!anchorRect || (anchorRect.width === 0 && anchorRect.height === 0)) {
+        anchorRect = {
+            top: window.innerHeight / 2,
+            bottom: window.innerHeight / 2 + 40,
+            left: window.innerWidth / 2 - 120,
+            right: window.innerWidth / 2 + 120,
+            height: 40,
+            width: 240
+        };
+    }
+
+    // Calculate slim floating panel position
+    let panelTop = anchorRect.top + window.scrollY - 52;
+    if (panelTop < window.scrollY + 10) {
+        panelTop = anchorRect.bottom + window.scrollY + 10;
+    }
+    let panelLeft = Math.max(16, Math.min(window.innerWidth - 340, anchorRect.left + window.scrollX));
+
+    // Create Slim Floating Action Panel
+    const panel = document.createElement('div');
+    panel.id = '--ai-rewriter-inline-panel';
+    panel.dataset.previewId = previewId;
+
+    Object.assign(panel.style, {
         position: 'absolute',
-        top: `${popoverTop}px`,
-        left: `${popoverLeft}px`,
-        maxWidth: '460px',
-        minWidth: '340px',
-        maxHeight: '440px',
-        backgroundColor: 'rgba(255, 255, 255, 0.96)',
-        backdropFilter: 'blur(24px)',
-        webkitBackdropFilter: 'blur(24px)',
-        borderRadius: '16px',
-        boxShadow: '0 24px 48px -12px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.08)',
+        top: `${panelTop}px`,
+        left: `${panelLeft}px`,
+        height: '42px',
+        padding: '4px 6px 4px 10px',
+        borderRadius: '9999px',
+        backgroundColor: 'rgba(15, 23, 42, 0.94)',
+        backdropFilter: 'blur(20px)',
+        webkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
+        boxShadow: '0 16px 36px -4px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+        color: '#ffffff',
         zIndex: '2147483647',
         fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
-        overflow: 'hidden',
-        animation: 'aiRewriterFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        userSelect: 'none',
+        pointerEvents: 'auto',
+        animation: 'aiRewriterPanelPop 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
     });
-    
-    // Add animation keyframes
-    if (!document.getElementById('--ai-rewriter-keyframes')) {
+
+    if (!document.getElementById('--ai-rewriter-panel-styles')) {
         const style = document.createElement('style');
-        style.id = '--ai-rewriter-keyframes';
+        style.id = '--ai-rewriter-panel-styles';
         style.textContent = `
-            @keyframes aiRewriterFadeIn {
-                from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+            @keyframes aiRewriterPanelPop {
+                from { opacity: 0; transform: translateY(6px) scale(0.95); }
                 to { opacity: 1; transform: translateY(0) scale(1); }
             }
-            @keyframes aiRewriterFadeOut {
+            @keyframes aiRewriterPanelFade {
                 from { opacity: 1; transform: translateY(0) scale(1); }
-                to { opacity: 0; transform: translateY(-8px) scale(0.97); }
+                to { opacity: 0; transform: translateY(6px) scale(0.95); }
             }
         `;
         document.head.appendChild(style);
     }
-    
-    // Header
-    const header = document.createElement('div');
-    Object.assign(header.style, {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '14px 18px',
-        borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-        background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
-        color: 'white'
-    });
-    
-    const title = document.createElement('div');
-    Object.assign(title.style, {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontSize: '13.5px',
-        fontWeight: '700',
-        letterSpacing: '-0.01em'
-    });
-    title.innerHTML = `
-        <svg style="width: 17px; height: 17px; flex-shrink: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-        </svg>
-        <span>AI Rewrite Preview</span>
-    `;
-    
-    const closeBtn = document.createElement('button');
-    Object.assign(closeBtn.style, {
-        background: 'rgba(255, 255, 255, 0.18)',
-        border: 'none',
-        borderRadius: '50%',
-        width: '26px',
-        height: '26px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        color: 'white',
-        fontSize: '13px',
-        fontWeight: '700',
-        transition: 'all 0.15s ease'
-    });
-    closeBtn.innerHTML = `<svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-    closeBtn.title = 'Cancel';
-    closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(255, 255, 255, 0.3)';
-    closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255, 255, 255, 0.18)';
-    closeBtn.onclick = () => {
-        removeHighlight();
-        popover.style.animation = 'aiRewriterFadeOut 0.15s ease-out forwards';
-        setTimeout(() => popover.remove(), 150);
+
+    // Clean up highlights function
+    const cleanupHighlights = () => {
+        if (targetType === 'input' && targetInput) {
+            targetInput.style.outline = '';
+            targetInput.style.outlineOffset = '';
+            targetInput.style.boxShadow = '';
+            delete targetInput.dataset.aiRewriterPreviewing;
+        } else if (targetType === 'contentEditable' && markElement) {
+            const parent = markElement.parentNode;
+            if (parent) {
+                while (markElement.firstChild) {
+                    parent.insertBefore(markElement.firstChild, markElement);
+                }
+                parent.removeChild(markElement);
+            }
+        }
+    };
+
+    // Revert changes function
+    const revertChanges = () => {
+        if (targetType === 'input' && targetInput) {
+            targetInput.value = originalValue;
+            targetInput.setSelectionRange(inputStart, inputEnd);
+            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (targetType === 'contentEditable' && markElement) {
+            const parent = markElement.parentNode;
+            if (parent) {
+                const textNode = document.createTextNode(originalText);
+                parent.replaceChild(textNode, markElement);
+            }
+        }
+        cleanupHighlights();
+    };
+
+    panel._revert = revertChanges;
+
+    // Accept handler
+    const onAccept = () => {
+        cleanupHighlights();
+        panel.style.animation = 'aiRewriterPanelFade 0.15s ease-out forwards';
+        setTimeout(() => panel.remove(), 140);
+        window.removeEventListener('keydown', keydownHandler);
+        window.postMessage({ type: 'AI_REWRITER_PREVIEW_INSERT', previewId }, '*');
+    };
+
+    // Decline handler
+    const onDecline = () => {
+        revertChanges();
+        panel.style.animation = 'aiRewriterPanelFade 0.15s ease-out forwards';
+        setTimeout(() => panel.remove(), 140);
+        window.removeEventListener('keydown', keydownHandler);
         window.postMessage({ type: 'AI_REWRITER_PREVIEW_CANCEL', previewId }, '*');
     };
-    
-    header.appendChild(title);
-    header.appendChild(closeBtn);
-    
-    // Content area
-    const content = document.createElement('div');
-    Object.assign(content.style, {
-        padding: '16px 18px',
-        maxHeight: '230px',
-        overflowY: 'auto',
-        fontSize: '13.5px',
-        lineHeight: '1.65',
-        color: '#0f172a',
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
-        backgroundColor: '#ffffff'
-    });
-    content.textContent = previewText;
-    
-    // Footer with buttons
-    const footer = document.createElement('div');
-    Object.assign(footer.style, {
-        display: 'flex',
-        gap: '10px',
-        padding: '12px 18px',
-        borderTop: '1px solid rgba(226, 232, 240, 0.8)',
-        backgroundColor: 'rgba(248, 250, 252, 0.95)'
-    });
-    
-    // Cancel button
-    const cancelBtn = document.createElement('button');
-    Object.assign(cancelBtn.style, {
-        flex: '1',
-        padding: '9px 16px',
-        border: '1px solid #e2e8f0',
-        borderRadius: '10px',
-        background: '#ffffff',
-        color: '#475569',
-        fontSize: '13px',
-        fontWeight: '600',
+
+    // Global keydown handler
+    const keydownHandler = (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            onDecline();
+        } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey || e.target === panel || e.target.closest('#--ai-rewriter-inline-panel'))) {
+            e.preventDefault();
+            e.stopPropagation();
+            onAccept();
+        }
+    };
+    window.addEventListener('keydown', keydownHandler);
+
+    // Sparkle Brand Glass Badge
+    const badge = document.createElement('div');
+    badge.style.display = 'flex';
+    badge.style.alignItems = 'center';
+    badge.style.gap = '6px';
+    badge.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 10px rgba(99,102,241,0.5);">
+            <svg style="width:12px;height:12px;" fill="white" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:#f1f5f9;letter-spacing:-0.01em;">Rewrite</span>
+    `;
+
+    // Solid Accept Button
+    const acceptBtn = document.createElement('button');
+    Object.assign(acceptBtn.style, {
+        background: '#10b981',
+        color: '#ffffff',
+        border: 'none',
+        fontSize: '12px',
+        fontWeight: '700',
+        padding: '6px 13px',
+        borderRadius: '9999px',
         cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '5px',
+        boxShadow: '0 2px 10px rgba(16, 185, 129, 0.45)',
         transition: 'all 0.15s ease',
         fontFamily: 'inherit'
     });
-    cancelBtn.textContent = 'Cancel';
-    cancelBtn.onmouseover = () => {
-        cancelBtn.style.background = '#f1f5f9';
-        cancelBtn.style.borderColor = '#cbd5e1';
+    acceptBtn.innerHTML = `
+        <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>Accept</span>
+        <span style="font-size: 10px; opacity: 0.85; background: rgba(0,0,0,0.22); padding: 1px 4px; border-radius: 4px; font-family: monospace;">↵</span>
+    `;
+    acceptBtn.onmouseover = () => {
+        acceptBtn.style.background = '#059669';
+        acceptBtn.style.transform = 'translateY(-1px)';
     };
-    cancelBtn.onmouseout = () => {
-        cancelBtn.style.background = '#ffffff';
-        cancelBtn.style.borderColor = '#e2e8f0';
+    acceptBtn.onmouseout = () => {
+        acceptBtn.style.background = '#10b981';
+        acceptBtn.style.transform = 'translateY(0)';
     };
-    cancelBtn.onclick = () => {
-        removeHighlight();
-        popover.style.animation = 'aiRewriterFadeOut 0.15s ease-out forwards';
-        setTimeout(() => popover.remove(), 150);
-        window.postMessage({ type: 'AI_REWRITER_PREVIEW_CANCEL', previewId }, '*');
+    acceptBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onAccept();
     };
-    
-    // Insert button
-    const insertBtn = document.createElement('button');
-    Object.assign(insertBtn.style, {
-        flex: '1',
-        padding: '9px 16px',
-        border: 'none',
-        borderRadius: '10px',
-        background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
-        color: '#ffffff',
-        fontSize: '13px',
-        fontWeight: '700',
+
+    // Solid / Sleek Decline Button
+    const declineBtn = document.createElement('button');
+    Object.assign(declineBtn.style, {
+        background: 'rgba(244, 63, 94, 0.15)',
+        color: '#fb7185',
+        border: '1px solid rgba(244, 63, 94, 0.35)',
+        fontSize: '12px',
+        fontWeight: '600',
+        padding: '5px 12px',
+        borderRadius: '9999px',
         cursor: 'pointer',
-        transition: 'all 0.15s ease',
-        fontFamily: 'inherit',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '6px',
-        boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)'
+        gap: '5px',
+        transition: 'all 0.15s ease',
+        fontFamily: 'inherit'
     });
-    insertBtn.innerHTML = `<svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Insert Text</span>`;
-    insertBtn.onmouseover = () => {
-        insertBtn.style.background = 'linear-gradient(135deg, #4338ca 0%, #3730a3 100%)';
-        insertBtn.style.transform = 'translateY(-1px)';
+    declineBtn.innerHTML = `
+        <svg style="width: 11px; height: 11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <span>Decline</span>
+        <span style="font-size: 10px; opacity: 0.85; background: rgba(0,0,0,0.22); padding: 1px 4px; border-radius: 4px; font-family: monospace;">Esc</span>
+    `;
+    declineBtn.onmouseover = () => {
+        declineBtn.style.background = 'rgba(244, 63, 94, 0.28)';
+        declineBtn.style.borderColor = 'rgba(244, 63, 94, 0.6)';
+        declineBtn.style.color = '#ffffff';
+        declineBtn.style.transform = 'translateY(-1px)';
     };
-    insertBtn.onmouseout = () => {
-        insertBtn.style.background = 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)';
-        insertBtn.style.transform = 'translateY(0)';
+    declineBtn.onmouseout = () => {
+        declineBtn.style.background = 'rgba(244, 63, 94, 0.15)';
+        declineBtn.style.borderColor = 'rgba(244, 63, 94, 0.35)';
+        declineBtn.style.color = '#fb7185';
+        declineBtn.style.transform = 'translateY(0)';
     };
-    insertBtn.onclick = () => {
-        removeHighlight();
-        popover.style.animation = 'aiRewriterFadeOut 0.15s ease-out forwards';
-        setTimeout(() => popover.remove(), 150);
-        window.postMessage({ type: 'AI_REWRITER_PREVIEW_INSERT', previewId }, '*');
+    declineBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onDecline();
     };
-    
-    footer.appendChild(cancelBtn);
-    footer.appendChild(insertBtn);
-    
-    // Assemble popover
-    popover.appendChild(header);
-    popover.appendChild(content);
-    popover.appendChild(footer);
-    
-    document.body.appendChild(popover);
-    
-    // Adjust position if popover goes off-screen or covers the selection
-    const popoverRect = popover.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    // Horizontal adjustment - keep popover within viewport
-    if (popoverRect.right > viewportWidth - 20) {
-        popover.style.left = `${Math.max(10, viewportWidth - popoverRect.width - 20)}px`;
-    }
-    
-    // Vertical adjustment - if popover goes below viewport or covers selection, move above
-    if (popoverRect.bottom > viewportHeight - 20) {
-        // Calculate position above the selection
-        if (selectionRect) {
-            const newTop = selectionRect.top + window.scrollY - popoverRect.height - 12;
-            if (newTop > 10) {
-                popover.style.top = `${newTop}px`;
-            } else {
-                popover.style.position = 'fixed';
-                popover.style.top = '10px';
-            }
-        } else {
-            popover.style.top = `${Math.max(10, popoverTop - popoverRect.height - 30)}px`;
-        }
-    }
-    
-    insertBtn.focus();
+
+    panel.appendChild(badge);
+    panel.appendChild(acceptBtn);
+    panel.appendChild(declineBtn);
+
+    document.body.appendChild(panel);
+    acceptBtn.focus();
 }
 
 // Handle messages from content scripts
@@ -1831,20 +1744,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.runtime.openOptionsPage();
     }
     
-    // Handle preview insert action
+    // Handle preview insert/accept action
     if (message.action === 'previewInsert') {
         const previewData = pendingPreviews.get(message.previewId);
         if (previewData) {
             (async () => {
                 try {
-                    // Use stored selection state for reliable text replacement
-                    await injectTextWithSelectionState(
-                        previewData.tabId, 
-                        previewData.frameId, 
-                        previewData.previewText,
-                        previewData.selectionState
-                    );
-                    
                     if (previewData.settings.enableUsageTracking) {
                         await trackUsage(previewData.modeKey, previewData.originalText.length, previewData.previewText.length);
                     }
@@ -1853,11 +1758,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         storeForUndo(previewData.tabId, previewData.frameId, previewData.originalText);
                     }
                     
-                    notifyUser(previewData.tabId, "Text inserted successfully!", false, 2000);
+                    notifyUser(previewData.tabId, "Rewrite accepted", false, 1500);
                     pendingPreviews.delete(message.previewId);
                 } catch (error) {
-                    console.error("Preview insert failed:", error);
-                    notifyUser(previewData.tabId, "Failed to insert text", true);
+                    console.error("Preview accept failed:", error);
                 }
             })();
         }
@@ -1865,9 +1769,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
     
-    // Handle preview cancel action
+    // Handle preview cancel/decline action
     if (message.action === 'previewCancel') {
-        pendingPreviews.delete(message.previewId);
+        const previewData = pendingPreviews.get(message.previewId);
+        if (previewData) {
+            notifyUser(previewData.tabId, "Rewrite reverted", false, 1500);
+            pendingPreviews.delete(message.previewId);
+        }
         sendResponse({ success: true });
         return true;
     }
