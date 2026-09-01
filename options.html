@@ -166,6 +166,23 @@
                     </div>
                 </div>
 
+                <!-- AI Aggressiveness & Creativity (Temperature) Slider -->
+                <div class="mb-6 p-4 rounded-2xl glass-nested bg-white/60 dark:bg-slate-800/50 border border-slate-200/80 dark:border-white/5">
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="temperatureSlider" class="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                            <img src="icons/glass/tune.png" alt="Aggressiveness" class="w-4 h-4"> AI Aggressiveness & Creativity (Temperature)
+                        </label>
+                        <span id="temperatureValueBadge" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-mono">0.80 (Balanced)</span>
+                    </div>
+                    <input type="range" id="temperatureSlider" min="0.0" max="1.5" step="0.05" value="0.8" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                    <div class="flex justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-2 px-0.5">
+                        <span>0.0 Conservative (Precise)</span>
+                        <span>0.8 Balanced</span>
+                        <span>1.2 Expressive</span>
+                        <span>1.5 Aggressive (Creative)</span>
+                    </div>
+                </div>
+
                 <!-- Theme Appearance Section in General Tab -->
                 <div class="mb-6 p-4 rounded-2xl glass-nested bg-white/60 dark:bg-slate-800/50 border border-slate-200/80 dark:border-white/5">
                     <div class="flex items-center justify-between mb-3">
@@ -195,14 +212,40 @@
                     <img src="icons/glass/tune.png" alt="Preferences" class="w-5 h-5"> Preferences & Behavior
                 </div>
 
+                <!-- Default Quick Rewrite Mode Dropdown -->
+                <div class="mb-4 p-4 rounded-2xl glass-nested bg-white/60 dark:bg-slate-800/50 border border-slate-200/80 dark:border-white/5">
+                    <label for="defaultRewriteMode" class="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+                        <span class="flex items-center gap-2">
+                            <img src="icons/glass/modes.png" alt="Default Mode" class="w-4 h-4"> Default Quick Rewrite Mode
+                        </span>
+                        <span class="text-[10px] text-slate-400">Used by floating quick button & default action</span>
+                    </label>
+                    <div class="relative">
+                        <select id="defaultRewriteMode" class="w-full pl-4 pr-10 py-2.5 rounded-xl glass-nested bg-white/80 dark:bg-slate-800/80 border border-slate-300/70 dark:border-white/10 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/40 appearance-none cursor-pointer">
+                            <!-- Populated dynamically via options.js -->
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Checkboxes -->
                 <div class="space-y-3 mb-8">
-                    <!-- Featured Preview Mode -->
+                    <!-- In-Textbox Floating Button Toggle -->
                     <div class="glass-checkbox flex items-center justify-between p-4 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50 hover:border-indigo-400 transition-all cursor-pointer">
-                        <label for="enablePreviewMode" class="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white cursor-pointer flex-1">
+                        <label for="enableFloatingButton" class="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white cursor-pointer flex-1">
+                            <img src="icons/glass/mode-retone.png" alt="Quick Button" class="w-5 h-5"> Show Quick AI Rewrite Button in Textboxes
+                        </label>
+                        <input type="checkbox" id="enableFloatingButton" checked class="w-5 h-5 rounded-md border-2 border-indigo-400 bg-white dark:bg-slate-800 cursor-pointer relative">
+                    </div>
+
+                    <!-- Featured Preview Mode -->
+                    <div class="glass-checkbox flex items-center justify-between p-4 rounded-2xl glass-nested bg-white/60 dark:bg-slate-800/50 border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/15 transition-all cursor-pointer">
+                        <label for="enablePreviewMode" class="flex items-center gap-3 text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex-1">
                             <img src="icons/glass/eye.png" alt="Preview" class="w-5 h-5"> Preview Before Replacing Selected Text
                         </label>
-                        <input type="checkbox" id="enablePreviewMode" checked class="w-5 h-5 rounded-md border-2 border-indigo-400 bg-white dark:bg-slate-800 cursor-pointer relative">
+                        <input type="checkbox" id="enablePreviewMode" checked class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 cursor-pointer relative">
                     </div>
 
                     <div class="glass-checkbox flex items-center justify-between p-4 rounded-2xl glass-nested bg-white/60 dark:bg-slate-800/50 border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/15 transition-all cursor-pointer">

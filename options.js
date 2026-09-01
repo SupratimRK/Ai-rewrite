@@ -317,6 +317,9 @@ async function loadAllSettings() {
                 customModes: {},
                 enabledModes: Object.keys(BUILT_IN_MODES),
                 maxTextLength: 8000,
+                temperature: 0.8,
+                defaultRewriteMode: 'retone',
+                enableFloatingButton: true,
                 enableUndo: true,
                 enablePreviewMode: true,
                 enableUsageTracking: true,
@@ -338,6 +341,9 @@ async function loadAllSettings() {
             'customModes',
             'enabledModes',
             'maxTextLength',
+            'temperature',
+            'defaultRewriteMode',
+            'enableFloatingButton',
             'enableUndo',
             'enablePreviewMode',
             'enableUsageTracking',
@@ -377,6 +383,9 @@ async function loadAllSettings() {
                 customModes: result.customModes || {},
                 enabledModes: enabledModes,
                 maxTextLength: result.maxTextLength || 8000,
+                temperature: result.temperature !== undefined ? parseFloat(result.temperature) : 0.8,
+                defaultRewriteMode: result.defaultRewriteMode || 'retone',
+                enableFloatingButton: result.enableFloatingButton !== false,
                 enableUndo: result.enableUndo !== false,
                 enablePreviewMode: result.enablePreviewMode !== false,
                 enableUsageTracking: result.enableUsageTracking !== false,
@@ -392,12 +401,65 @@ async function loadAllSettings() {
     });
 }
 
+function getTemperatureBadgeText(val) {
+    val = parseFloat(val);
+    if (val <= 0.3) return `${val.toFixed(2)} (Conservative - Minimal Changes)`;
+    if (val <= 0.65) return `${val.toFixed(2)} (Subtle - Polished & Accurate)`;
+    if (val <= 0.95) return `${val.toFixed(2)} (Balanced - Recommended)`;
+    if (val <= 1.25) return `${val.toFixed(2)} (Creative - Expressive)`;
+    return `${val.toFixed(2)} (Aggressive - High Variance)`;
+}
+
+function populateDefaultRewriteModes(selectedKey = 'retone') {
+    const select = document.getElementById('defaultRewriteMode');
+    if (!select) return;
+    select.innerHTML = '';
+
+    // Add built-in modes
+    Object.entries(BUILT_IN_MODES).forEach(([key, name]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = name;
+        if (key === selectedKey) option.selected = true;
+        select.appendChild(option);
+    });
+
+    // Add custom modes if any
+    if (currentSettings.customModes) {
+        Object.entries(currentSettings.customModes).forEach(([key, mode]) => {
+            const option = document.createElement('option');
+            option.value = `custom_${key}`;
+            option.textContent = `Custom: ${mode.name || key}`;
+            if (`custom_${key}` === selectedKey || key === selectedKey) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+}
+
 function updateUIFromSettings() {
     const baseUrl = currentSettings.openaiBaseUrl || '';
     document.getElementById('apiKey').value = currentSettings.openaiApiKey;
     document.getElementById('baseUrl').value = baseUrl;
     document.getElementById('selectedModel').value = currentSettings.selectedModel;
     document.getElementById('maxTextLength').value = currentSettings.maxTextLength;
+    
+    // Aggressiveness / Temperature Slider
+    const tempSlider = document.getElementById('temperatureSlider');
+    const tempBadge = document.getElementById('temperatureValueBadge');
+    if (tempSlider) {
+        tempSlider.value = currentSettings.temperature !== undefined ? currentSettings.temperature : 0.8;
+    }
+    if (tempBadge) {
+        tempBadge.textContent = getTemperatureBadgeText(currentSettings.temperature !== undefined ? currentSettings.temperature : 0.8);
+    }
+
+    // Default Rewrite Mode & In-Textbox Button
+    populateDefaultRewriteModes(currentSettings.defaultRewriteMode || 'retone');
+    const floatBtn = document.getElementById('enableFloatingButton');
+    if (floatBtn) {
+        floatBtn.checked = currentSettings.enableFloatingButton !== false;
+    }
+
     document.getElementById('enableUndo').checked = currentSettings.enableUndo;
     document.getElementById('enablePreviewMode').checked = currentSettings.enablePreviewMode;
     document.getElementById('enableUsageTracking').checked = currentSettings.enableUsageTracking;
@@ -657,6 +719,14 @@ function setupEventListeners() {
     document.getElementById('importFile').addEventListener('change', importSettings);
     document.getElementById('resetAllSettings').addEventListener('click', resetAllSettings);
 
+    const tempSlider = document.getElementById('temperatureSlider');
+    const tempBadge = document.getElementById('temperatureValueBadge');
+    if (tempSlider && tempBadge) {
+        tempSlider.addEventListener('input', (e) => {
+            tempBadge.textContent = getTemperatureBadgeText(e.target.value);
+        });
+    }
+
     const toggleApiKeyBtn = document.getElementById('toggleApiKeyVisibility');
     if (toggleApiKeyBtn) {
         toggleApiKeyBtn.addEventListener('click', () => {
@@ -695,6 +765,9 @@ async function saveGeneralSettings() {
         openaiBaseUrl: baseUrl,
         selectedModel: document.getElementById('selectedModel').value,
         maxTextLength: parseInt(document.getElementById('maxTextLength').value),
+        temperature: parseFloat(document.getElementById('temperatureSlider') ? document.getElementById('temperatureSlider').value : '0.8'),
+        defaultRewriteMode: document.getElementById('defaultRewriteMode') ? document.getElementById('defaultRewriteMode').value : 'retone',
+        enableFloatingButton: document.getElementById('enableFloatingButton') ? document.getElementById('enableFloatingButton').checked : true,
         enableUndo: document.getElementById('enableUndo').checked,
         enablePreviewMode: document.getElementById('enablePreviewMode').checked,
         enableUsageTracking: document.getElementById('enableUsageTracking').checked,

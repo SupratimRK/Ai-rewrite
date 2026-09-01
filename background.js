@@ -502,6 +502,9 @@ async function getSettings() {
             'customModes',
             'enabledModes',
             'maxTextLength',
+            'temperature',
+            'defaultRewriteMode',
+            'enableFloatingButton',
             'enableUndo',
             'enablePreviewMode',
             'enableUsageTracking',
@@ -525,6 +528,9 @@ async function getSettings() {
                 customModes: result.customModes || {},
                 enabledModes: enabledModes,
                 maxTextLength: result.maxTextLength || CONFIG.MAX_TEXT_LENGTH,
+                temperature: result.temperature !== undefined ? parseFloat(result.temperature) : 0.8,
+                defaultRewriteMode: result.defaultRewriteMode || 'retone',
+                enableFloatingButton: result.enableFloatingButton !== false,
                 enableUndo: result.enableUndo !== false,
                 enablePreviewMode: result.enablePreviewMode !== false,
                 enableUsageTracking: result.enableUsageTracking !== false,
@@ -862,7 +868,7 @@ async function callOpenAIApi(apiKey, baseUrl, text, modeInfo, settings) {
                 content: prompt
             }
         ],
-        temperature: getTemperatureForMode(modeInfo.key),
+        temperature: getCalculatedTemperature(modeInfo.key, settings),
         max_tokens: 4096,
         top_p: 0.8
     };
@@ -967,6 +973,33 @@ async function generatePrompt(text, modeInfo, settings) {
     return `${modePrompt}\n\n${baseInstruction}\n\nInput text:\n"${text}"\n\nOutput:`;
 }
 
+function getCalculatedTemperature(modeKey, settings) {
+    if (settings && typeof settings.temperature === 'number' && !isNaN(settings.temperature)) {
+        const baseTemp = settings.temperature;
+        const relativeMultipliers = {
+            grammar: 0.85,
+            academic: 0.9,
+            technical: 0.9,
+            professional: 0.95,
+            retone: 1.0,
+            humanize: 1.05,
+            casual: 1.05,
+            polite: 1.0,
+            confident: 1.0,
+            empathetic: 1.0,
+            concise: 0.95,
+            detailed: 1.0,
+            persuasive: 1.1,
+            marketing: 1.15,
+            creative: 1.3
+        };
+        const mult = relativeMultipliers[modeKey] || 1.0;
+        const result = Math.min(2.0, Math.max(0.0, baseTemp * mult));
+        return parseFloat(result.toFixed(2));
+    }
+    return getTemperatureForMode(modeKey);
+}
+
 function getTemperatureForMode(mode) {
     const temperatures = {
         grammar: 0.7,
@@ -998,8 +1031,8 @@ function postProcessResult(text, mode) {
     // Remove markdown formatting
     text = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
     text = text.replace(/\*(.*?)\*/g, '$1');     // Italic
-    text = text.replace(/`(.*?)`/g, '$1');       // Code
-    text = text.replace(/_{2,}(.*?)_{2,}/g, '$1'); // Underline
+    text = text.replace(/`([^`]+)`/g, '$1');     // Inline code
+    text = text.replace(/^#+\s+/gm, '');         // Headers
     
     // Remove list formatting for non-list modes
     if (!['detailed'].includes(mode)) {
@@ -1030,25 +1063,87 @@ function postProcessResult(text, mode) {
 }
 
 // === MESSAGE HANDLING ===
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'updateContextMenus') {
-        try {
-            await setupContextMenus();
-            sendResponse({ success: true });
-        } catch (error) {
-            console.error("Error updating context menus:", error);
-            sendResponse({ success: false, error: error.message });
-        }
-        return true; // Keep the message channel open for async response
+        setupContextMenus()
+            .then(() => sendResponse({ success: true }))
+            .catch(error => {
+                console.error("Error updating context menus:", error);
+                sendResponse({ success: false, error: error.message });
+            });
+        return true;
     }
     
     if (message.action === 'getPerformanceMetrics') {
         sendResponse({ metrics: performanceMetrics });
+        return true;
     }
     
     if (message.action === 'clearCache') {
         responseCache.clear();
         sendResponse({ success: true });
+        return true;
+    }
+
+    if (message.action === 'getFloatingButtonSettings') {
+        getSettings().then(settings => {
+            const defaultKey = settings.defaultRewriteMode || 'retone';
+            const modeName = BUILT_IN_MODES[defaultKey]?.name || settings.customModes?.[defaultKey]?.name || 'Rewrite';
+            sendResponse({
+                enableFloatingButton: settings.enableFloatingButton !== false,
+                defaultRewriteMode: defaultKey,
+                defaultModeName: modeName,
+                enablePreviewMode: settings.enablePreviewMode !== false
+            });
+        }).catch(err => {
+            sendResponse({ enableFloatingButton: true, defaultRewriteMode: 'retone', defaultModeName: 'Retone' });
+        });
+        return true;
+    }
+
+    if (message.action === 'triggerQuickRewrite') {
+        getSettings().then(async (settings) => {
+            const tabId = sender.tab?.id;
+            if (!tabId) return;
+
+            const defaultKey = settings.defaultRewriteMode || 'retone';
+            const modeInfo = defaultKey.startsWith('custom_')
+                ? { type: 'custom', key: defaultKey.replace('custom_', '') }
+                : { type: 'builtin', key: defaultKey };
+
+            const text = (message.text || '').trim();
+            if (!text) {
+                notifyUser(tabId, "Please type or select some text to rewrite.", true);
+                return;
+            }
+
+            if (text.length > settings.maxTextLength) {
+                notifyUser(tabId, `Text exceeds maximum length of ${settings.maxTextLength} characters`, true);
+                return;
+            }
+
+            const cleanModeName = BUILT_IN_MODES[defaultKey]?.name || settings.customModes?.[defaultKey]?.name || 'Quick Rewrite';
+            notifyUser(tabId, `Rewriting with ${cleanModeName}...`, false, 2500);
+
+            try {
+                const resultText = await callOpenAIApiWithRetry(settings.openaiApiKey, settings.openaiBaseUrl, text, modeInfo, settings);
+                if (resultText && resultText.trim()) {
+                    if (settings.enablePreviewMode) {
+                        await showPreviewPopover(tabId, sender.frameId || 0, text, resultText, modeInfo.key, settings);
+                    } else {
+                        await injectTextIntoPage(tabId, sender.frameId || 0, resultText, text);
+                        if (settings.enableUsageTracking) {
+                            await trackUsage(modeInfo.key, text.length, resultText.length);
+                        }
+                        notifyUser(tabId, "Text rewritten successfully!", false, 2000);
+                    }
+                }
+            } catch (err) {
+                console.error("Quick rewrite failed:", err);
+                notifyUser(tabId, getUserFriendlyError(err), true);
+            }
+        });
+        return true;
     }
 });
 
