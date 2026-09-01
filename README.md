@@ -186,19 +186,25 @@ The extension includes built-in 1-click presets for curated cloud and local prov
 
 ---
 
-## ✨ How to Use (The Fun Part!) ✨
+## ✨ How to Use ✨
 
-Okay, installed? ✅ API key saved? ✅ Ready to rock? ✅ Let's rewrite!
+### 1. 🫧 In-Textbox Quick AI Bubble
+- Focus or type in any text box, chat prompt (ChatGPT, Claude, Copilot), comment area, or rich-text editor (WhatsApp Web, Reddit, Notion, social platforms).
+- A compact circular brand bubble appears neatly at the end of the textbox.
+- Click the bubble to instantly rewrite with your configured default mode!
 
-1.  **Find a Victim... I Mean, a Text Box 🎯:** Go to any website with a text input field (`<textarea>`, some `<input>` fields). Think email drafts, comment boxes, social media posts, online notepads... you get the idea.
-    *   **Heads Up:** This probably *won't* work on super fancy custom editors like Google Docs or Notion directly, as they do weird things. It *definitely* won't work on `chrome://` pages (like the extensions page itself) for security reasons! Stick to normal web pages (http/https).
-2.  **Type Your Soon-to-be-Glorious Words ⌨️:** Write something. Anything! Pour your heart out, or just type "the quick brown fox jumps over the lazy dog".
-3.  **Highlight the Chosen Ones ✨:** Select the text you want to transform using your mouse or keyboard.
-4.  **Invoke the Menu! Right-Click Pow! 🖱️💥:** Right-click directly *on the selected text*.
-5.  **Behold! The Menu! 🤩:** Hover over the "**✨ Rewrite with AI**" option in the context menu that pops up.
-6.  **Pick Your Mode 🎭:** Choose one of the 15 available modes from the sub-menu (Retone, Humanize, Professional, Creative, Technical, etc.).
-7.  **Patience, Grasshopper... 🌱:** A sleek notification will appear showing the progress. The extension sends your text and chosen mode to the selected AI model. Response time depends on text complexity and your selected AI model. 🐹
-8.  **Witness the Transformation! 🪄:** If the AI gods smile upon you, the selected text will be **replaced** with the rewritten version! 🎉
+### 2. 🪄 Right-Click Context Menu
+- Highlight any text you want to transform.
+- Right-click directly on the selected text and hover over **"✨ Rewrite with AI"**.
+- Pick your desired mode from the 15 available styles or your saved custom prompts.
+- Preview changes directly in-place with the floating action toolbar and press `Enter` to Accept or `Esc` to Decline.
+
+### 3. ⌨️ Keyboard Shortcuts
+- `Ctrl+Shift+R` — Retone selected text (Context, Clarity & Polish)
+- `Ctrl+Shift+H` — Humanize selected text
+- `Ctrl+Shift+P` — Professional business tone
+- `Ctrl+Shift+G` — Fix grammar and spelling
+- `Undo Rewrite` — Configurable hotkey (e.g. `Ctrl+Shift+Z`) in `chrome://extensions/shortcuts`
 
 ---
 
