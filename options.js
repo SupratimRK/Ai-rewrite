@@ -304,6 +304,33 @@ function setupThemeControls() {
 // === SETTINGS MANAGEMENT ===
 async function loadAllSettings() {
     return new Promise((resolve) => {
+        if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.sync) {
+            let savedLocal = 'dark';
+            try {
+                savedLocal = localStorage.getItem('ai_rewrite_theme_mode') || 'dark';
+            } catch (e) {}
+
+            currentSettings = {
+                openaiApiKey: '',
+                openaiBaseUrl: '',
+                selectedModel: 'chat-latest',
+                customModes: {},
+                enabledModes: Object.keys(BUILT_IN_MODES),
+                maxTextLength: 8000,
+                enableUndo: true,
+                enablePreviewMode: true,
+                enableUsageTracking: true,
+                enableKeyboardShortcuts: true,
+                darkMode: resolveIsDark(savedLocal),
+                themeMode: savedLocal
+            };
+
+            updateUIFromSettings();
+            renderProviderPresets();
+            resolve();
+            return;
+        }
+
         chrome.storage.sync.get([
             'openaiApiKey',
             'openaiBaseUrl',
@@ -359,6 +386,7 @@ async function loadAllSettings() {
             };
 
             updateUIFromSettings();
+            renderProviderPresets();
             resolve();
         });
     });
@@ -390,6 +418,7 @@ function updateUIFromSettings() {
     
     updateModelSuggestions(provider.suggestedModels);
     applyThemeMode(currentSettings.themeMode);
+    renderProviderPresets();
 }
 
 function detectProviderFromUrl(url) {

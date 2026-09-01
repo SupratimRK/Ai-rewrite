@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/b63c31c2-718c-42db-8cfd-393ba1dcadfc" alt="Screenshot">
+    <img src="docs/screenshots/01_general_dark.png" alt="AI Text Rewriter Pro Studio" width="100%">
 </p>
 
 # ✨ AI Text Rewriter Pro - Advanced Chrome Extension for AI-Powered Writing ✨
@@ -7,6 +7,33 @@
 **(Transform your writing with OpenAI and OpenAI-compatible APIs! 🚀)**
 
 [![Version](https://img.shields.io/badge/Version-2.6.0-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
+
+## 📸 Visual Showcase
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%">
+        <h4 align="center">🌙 Dark Glassmorphism Studio</h4>
+        <img src="docs/screenshots/01_general_dark.png" alt="Dark Mode Studio" width="100%">
+      </td>
+      <td width="50%">
+        <h4 align="center">☀️ Light Glassmorphism Studio</h4>
+        <img src="docs/screenshots/05_general_light.png" alt="Light Mode Studio" width="100%">
+      </td>
+    </tr>
+    <tr>
+      <td width="50%">
+        <h4 align="center">🎭 15 Liquid Glass Writing Modes</h4>
+        <img src="docs/screenshots/02_modes_liquid_glass.png" alt="15 Writing Modes" width="100%">
+      </td>
+      <td width="50%">
+        <h4 align="center">📊 Analytics & Usage Stats</h4>
+        <img src="docs/screenshots/04_stats_analytics.png" alt="Analytics and Stats" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
 
 **AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using OpenAI and OpenAI-compatible APIs. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **15 built-in rewriting modes including Retone**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
 
