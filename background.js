@@ -1435,36 +1435,63 @@ async function showPreviewPopover(tabId, frameId, originalText, previewText, mod
 
 // Function that runs in page context to overwrite text and attach slim action panel
 function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
-    // Remove any existing preview panel or highlight
+    // 1. Remove any previous preview panel, highlight overlay, or revert old session
     const oldPanel = document.getElementById('--ai-rewriter-inline-panel');
     if (oldPanel) {
         if (typeof oldPanel._revert === 'function') {
-            oldPanel._revert();
+            try { oldPanel._revert(); } catch (e) {}
         }
         oldPanel.remove();
     }
+    const oldOverlay = document.getElementById('--ai-rewriter-highlight-overlay');
+    if (oldOverlay) oldOverlay.remove();
 
-    const activeElement = document.activeElement;
-    const selection = window.getSelection();
+    let activeEl = document.activeElement;
+    const sel = window.getSelection();
+
+    // If activeEl is body, find the closest editable container from selection
+    if ((!activeEl || activeEl === document.body) && sel && sel.rangeCount > 0) {
+        let node = sel.anchorNode;
+        while (node && node !== document.body) {
+            if (node.nodeType === 1 && (node.isContentEditable || node.tagName === 'TEXTAREA' || node.tagName === 'INPUT')) {
+                activeEl = node;
+                break;
+            }
+            node = node.parentNode;
+        }
+    }
 
     let targetType = 'none';
     let targetInput = null;
     let inputStart = 0;
     let inputEnd = 0;
     let originalValue = '';
-    let markElement = null;
     let anchorRect = null;
+    let reverted = false;
 
-    // 1. In-place overwrite for Textarea and Input
-    if (activeElement && (activeElement.tagName === 'TEXTAREA' || 
-        (activeElement.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeElement.type)))) {
+    // Helper: Safely set value on React/Vue/standard Inputs
+    const setNativeInputValue = (el, val) => {
+        const proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+        const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+        if (descriptor && descriptor.set) {
+            descriptor.set.call(el, val);
+        } else {
+            el.value = val;
+        }
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    // Case 1: Standard Input or Textarea
+    if (activeEl && (activeEl.tagName === 'TEXTAREA' || 
+        (activeEl.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeEl.type)))) {
         targetType = 'input';
-        targetInput = activeElement;
-        inputStart = activeElement.selectionStart;
-        inputEnd = activeElement.selectionEnd;
-        originalValue = activeElement.value;
+        targetInput = activeEl;
+        inputStart = activeEl.selectionStart;
+        inputEnd = activeEl.selectionEnd;
+        originalValue = activeEl.value;
 
-        // If selection collapsed during context click, find originalText in value
+        // If selection collapsed on context click, find originalText
         if (inputStart === inputEnd && originalText) {
             const foundIdx = originalValue.indexOf(originalText);
             if (foundIdx !== -1) {
@@ -1473,37 +1500,25 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
             }
         }
 
-        // Overwrite selected portion with rewritten text
         const before = originalValue.substring(0, inputStart);
         const after = originalValue.substring(inputEnd);
-        activeElement.value = before + previewText + after;
-
-        // Select the newly overwritten text
-        const newEnd = inputStart + previewText.length;
-        activeElement.setSelectionRange(inputStart, newEnd);
-        activeElement.focus();
-
-        // Highlight input field with glowing ring and soft tint
-        activeElement.dataset.aiRewriterPreviewing = 'true';
-        activeElement.style.setProperty('outline', '2.5px solid #6366f1', 'important');
-        activeElement.style.setProperty('outline-offset', '2px', 'important');
-        activeElement.style.setProperty('box-shadow', '0 0 0 4px rgba(99, 102, 241, 0.25), 0 0 20px rgba(99, 102, 241, 0.45)', 'important');
-        activeElement.style.setProperty('background-color', 'rgba(99, 102, 241, 0.08)', 'important');
-
-        // Dispatch input event for frameworks (React, Vue, etc.)
-        activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-        anchorRect = activeElement.getBoundingClientRect();
+        const newValue = before + previewText + after;
+        
+        setNativeInputValue(activeEl, newValue);
+        activeEl.focus();
+        activeEl.setSelectionRange(inputStart, inputStart + previewText.length);
+        anchorRect = activeEl.getBoundingClientRect();
     }
-    // 2. In-place overwrite for contentEditable
-    else if (activeElement && activeElement.isContentEditable) {
+    // Case 2: ContentEditable (Facebook, Notion, Twitter, Gmail, etc.)
+    else if (activeEl && activeEl.isContentEditable) {
         targetType = 'contentEditable';
-        let range = null;
+        activeEl.focus();
 
-        if (selection.rangeCount > 0 && !selection.isCollapsed) {
-            range = selection.getRangeAt(0);
+        let range = null;
+        if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+            range = sel.getRangeAt(0);
         } else if (originalText) {
-            // Find text node matching original text
-            const walker = document.createTreeWalker(activeElement, NodeFilter.SHOW_TEXT, null, false);
+            const walker = document.createTreeWalker(activeEl, NodeFilter.SHOW_TEXT, null, false);
             while (walker.nextNode()) {
                 const node = walker.currentNode;
                 const idx = node.textContent.indexOf(originalText);
@@ -1511,6 +1526,8 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
                     range = document.createRange();
                     range.setStart(node, idx);
                     range.setEnd(node, idx + originalText.length);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
                     break;
                 }
             }
@@ -1518,28 +1535,34 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
 
         if (range) {
             anchorRect = range.getBoundingClientRect();
-            range.deleteContents();
-
-            markElement = document.createElement('mark');
-            markElement.id = '--ai-rewriter-preview-mark';
-            markElement.style.setProperty('background-color', 'rgba(99, 102, 241, 0.28)', 'important');
-            markElement.style.setProperty('color', 'inherit', 'important');
-            markElement.style.setProperty('border-bottom', '2.5px solid #6366f1', 'important');
-            markElement.style.setProperty('border-radius', '4px', 'important');
-            markElement.style.setProperty('padding', '2px 5px', 'important');
-            markElement.style.setProperty('box-shadow', '0 0 0 2px rgba(99, 102, 241, 0.2), 0 0 16px rgba(99, 102, 241, 0.45)', 'important');
-            markElement.textContent = previewText;
-
-            range.insertNode(markElement);
-            selection.removeAllRanges();
-
-            activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-            anchorRect = markElement.getBoundingClientRect();
         } else {
-            anchorRect = activeElement.getBoundingClientRect();
+            anchorRect = activeEl.getBoundingClientRect();
+        }
+
+        // Use execCommand('insertText') which works natively across React, Lexical (Facebook), Draft.js
+        try {
+            document.execCommand('insertText', false, previewText);
+        } catch (e) {
+            console.warn("execCommand failed, fallback to range insertion:", e);
+            if (range) {
+                range.deleteContents();
+                const textNode = document.createTextNode(previewText);
+                range.insertNode(textNode);
+            }
+        }
+        activeEl.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Re-calculate bounding box after text is inserted
+        if (sel && sel.rangeCount > 0) {
+            const newRange = sel.getRangeAt(0);
+            const rRect = newRange.getBoundingClientRect();
+            if (rRect && rRect.width > 0) {
+                anchorRect = rRect;
+            }
         }
     }
 
+    // Fallback anchorRect
     if (!anchorRect || (anchorRect.width === 0 && anchorRect.height === 0)) {
         anchorRect = {
             top: window.innerHeight / 2,
@@ -1551,45 +1574,23 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         };
     }
 
-    // Calculate slim floating panel position
-    let panelTop = anchorRect.top + window.scrollY - 54;
-    if (panelTop < window.scrollY + 10) {
-        panelTop = anchorRect.bottom + window.scrollY + 10;
-    }
-    let panelLeft = Math.max(16, Math.min(window.innerWidth - 360, anchorRect.left + window.scrollX));
-
-    // Create Slim Floating Action Panel
-    const panel = document.createElement('div');
-    panel.id = '--ai-rewriter-inline-panel';
-    panel.dataset.previewId = previewId;
-
-    Object.assign(panel.style, {
-        position: 'absolute',
-        top: `${panelTop}px`,
-        left: `${panelLeft}px`,
-        height: '44px',
-        padding: '4px 6px 4px 10px',
-        borderRadius: '9999px',
-        backgroundColor: 'rgba(15, 23, 42, 0.94)',
-        backdropFilter: 'blur(20px)',
-        webkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.18)',
-        boxShadow: '0 16px 36px -4px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08)',
-        color: '#ffffff',
-        zIndex: '2147483647',
-        fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        userSelect: 'none',
-        pointerEvents: 'auto',
-        animation: 'aiRewriterPanelPop 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
-    });
-
-    if (!document.getElementById('--ai-rewriter-panel-styles')) {
+    // Inject CSS styles for highlights and animations
+    if (!document.getElementById('--ai-rewriter-preview-styles')) {
         const style = document.createElement('style');
-        style.id = '--ai-rewriter-panel-styles';
+        style.id = '--ai-rewriter-preview-styles';
         style.textContent = `
+            @keyframes aiRewriterGlowPulse {
+                0%, 100% {
+                    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4), 0 0 20px rgba(99, 102, 241, 0.5);
+                    border-color: rgba(99, 102, 241, 0.9);
+                    background-color: rgba(99, 102, 241, 0.18);
+                }
+                50% {
+                    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.65);
+                    border-color: rgba(139, 92, 246, 1);
+                    background-color: rgba(99, 102, 241, 0.28);
+                }
+            }
             @keyframes aiRewriterPanelPop {
                 from { opacity: 0; transform: translateY(6px) scale(0.95); }
                 to { opacity: 1; transform: translateY(0) scale(1); }
@@ -1602,63 +1603,112 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         document.head.appendChild(style);
     }
 
-    // Clean up highlights function
-    const cleanupHighlights = () => {
-        if (targetType === 'input' && targetInput) {
-            targetInput.style.removeProperty('outline');
-            targetInput.style.removeProperty('outline-offset');
-            targetInput.style.removeProperty('box-shadow');
-            targetInput.style.removeProperty('background-color');
-            delete targetInput.dataset.aiRewriterPreviewing;
-        } else if (targetType === 'contentEditable' && markElement) {
-            const parent = markElement.parentNode;
-            if (parent) {
-                while (markElement.firstChild) {
-                    parent.insertBefore(markElement.firstChild, markElement);
-                }
-                parent.removeChild(markElement);
-            }
-        }
-    };
+    // 2. Create Glowing Highlight Overlay on top of the rewritten text
+    const overlay = document.createElement('div');
+    overlay.id = '--ai-rewriter-highlight-overlay';
+    Object.assign(overlay.style, {
+        position: 'absolute',
+        top: `${Math.max(0, anchorRect.top + window.scrollY - 3)}px`,
+        left: `${Math.max(0, anchorRect.left + window.scrollX - 5)}px`,
+        width: `${Math.max(30, anchorRect.width + 10)}px`,
+        height: `${Math.max(22, anchorRect.height + 6)}px`,
+        border: '2px dashed rgba(99, 102, 241, 0.85)',
+        borderRadius: '6px',
+        pointerEvents: 'none',
+        zIndex: '2147483646',
+        animation: 'aiRewriterGlowPulse 2s infinite ease-in-out',
+        boxSizing: 'border-box'
+    });
+    document.body.appendChild(overlay);
+
+    // 3. Calculate Slim Floating Panel Position
+    let panelTop = anchorRect.top + window.scrollY - 54;
+    if (panelTop < window.scrollY + 10) {
+        panelTop = anchorRect.bottom + window.scrollY + 12;
+    }
+    let panelLeft = Math.max(16, Math.min(window.innerWidth - 370, anchorRect.left + window.scrollX));
+
+    // 4. Create Slim Floating Action Panel
+    const panel = document.createElement('div');
+    panel.id = '--ai-rewriter-inline-panel';
+    panel.dataset.previewId = previewId;
+
+    Object.assign(panel.style, {
+        position: 'absolute',
+        top: `${panelTop}px`,
+        left: `${panelLeft}px`,
+        height: '44px',
+        padding: '4px 6px 4px 10px',
+        borderRadius: '9999px',
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        backdropFilter: 'blur(20px)',
+        webkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
+        boxShadow: '0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+        color: '#ffffff',
+        zIndex: '2147483647',
+        fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        userSelect: 'none',
+        pointerEvents: 'auto',
+        animation: 'aiRewriterPanelPop 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+    });
 
     // Revert changes function
     const revertChanges = () => {
+        if (reverted) return;
+        reverted = true;
+
         if (targetType === 'input' && targetInput) {
-            targetInput.value = originalValue;
+            setNativeInputValue(targetInput, originalValue);
             targetInput.setSelectionRange(inputStart, inputEnd);
-            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
-        } else if (targetType === 'contentEditable' && markElement) {
-            const parent = markElement.parentNode;
-            if (parent) {
-                const textNode = document.createTextNode(originalText);
-                parent.replaceChild(textNode, markElement);
+        } else if (targetType === 'contentEditable' && activeEl) {
+            activeEl.focus();
+            try {
+                // Try native undo first
+                const undoSuccess = document.execCommand('undo', false, null);
+                if (!undoSuccess) {
+                    // Fallback to replacing back with original text
+                    document.execCommand('insertText', false, originalText);
+                }
+            } catch (e) {
+                console.warn("ContentEditable revert error:", e);
             }
+            activeEl.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        cleanupHighlights();
+
+        const currentOverlay = document.getElementById('--ai-rewriter-highlight-overlay');
+        if (currentOverlay) currentOverlay.remove();
     };
 
     panel._revert = revertChanges;
 
-    // Accept handler
-    const onAccept = () => {
-        cleanupHighlights();
+    // Cleanup & Close UI
+    const closeUI = () => {
+        const curOverlay = document.getElementById('--ai-rewriter-highlight-overlay');
+        if (curOverlay) curOverlay.remove();
         panel.style.animation = 'aiRewriterPanelFade 0.15s ease-out forwards';
         setTimeout(() => panel.remove(), 140);
         window.removeEventListener('keydown', keydownHandler);
+        document.removeEventListener('mousedown', handleOutsideClick, true);
+    };
+
+    // Accept handler
+    const onAccept = () => {
+        closeUI();
         window.postMessage({ type: 'AI_REWRITER_PREVIEW_INSERT', previewId }, '*');
     };
 
     // Decline handler
     const onDecline = () => {
         revertChanges();
-        panel.style.animation = 'aiRewriterPanelFade 0.15s ease-out forwards';
-        setTimeout(() => panel.remove(), 140);
-        window.removeEventListener('keydown', keydownHandler);
+        closeUI();
         window.postMessage({ type: 'AI_REWRITER_PREVIEW_CANCEL', previewId }, '*');
     };
 
-    // Global keydown handler
+    // Keyboard navigation
     const keydownHandler = (e) => {
         if (e.key === 'Escape') {
             e.preventDefault();
@@ -1672,11 +1722,21 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     };
     window.addEventListener('keydown', keydownHandler);
 
-    // Extract clean mode title
+    // Outside click dismiss & revert
+    const handleOutsideClick = (e) => {
+        if (panel && !panel.contains(e.target)) {
+            onDecline();
+        }
+    };
+    setTimeout(() => {
+        document.addEventListener('mousedown', handleOutsideClick, true);
+    }, 250);
+
+    // Dynamic mode label
     let cleanModeTitle = (modeName || 'Rewrite').split('(')[0].replace(/^Fix\s+/i, '').replace(/\s+Tone$/i, '').trim();
     if (!cleanModeTitle) cleanModeTitle = 'Rewrite';
 
-    // Sparkle Brand Glass Badge with Mode Name
+    // Sparkle Brand Glass Badge
     const badge = document.createElement('div');
     badge.style.display = 'flex';
     badge.style.alignItems = 'center';
@@ -1689,7 +1749,7 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         <span style="font-size:12.5px;font-weight:700;color:#f8fafc;letter-spacing:-0.01em;white-space:nowrap;">${cleanModeTitle}</span>
     `;
 
-    // Solid Accept Button with well-spaced, clear Enter key
+    // Accept Button
     const acceptBtn = document.createElement('button');
     Object.assign(acceptBtn.style, {
         background: '#10b981',
@@ -1729,7 +1789,7 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         onAccept();
     };
 
-    // Solid / Sleek Decline Button
+    // Decline Button
     const declineBtn = document.createElement('button');
     Object.assign(declineBtn.style, {
         background: 'rgba(244, 63, 94, 0.15)',
