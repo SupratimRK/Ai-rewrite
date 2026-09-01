@@ -929,7 +929,7 @@ async function callOpenAIApi(apiKey, baseUrl, text, modeInfo, settings) {
 // === ENHANCED PROMPT GENERATION ===
 
 async function generatePrompt(text, modeInfo, settings) {
-    const baseInstruction = `IMPORTANT: Respond with ONLY the final text result. No explanations, no markdown formatting, no bullet points, no preambles, no quotes around the result. Just the direct text output. CRITICAL: Preserve the original language of the input text - if the input is in a specific language, respond in that same language.`;
+    const baseInstruction = `IMPORTANT: Respond with ONLY the final rewritten text. Do not include conversational preambles, explanations, or wrapping quotes. Preserve the original structural formatting, line breaks, bullet points, and numbered lists in clean plain text format if present in the input. Do not wrap the response in markdown code blocks. CRITICAL: Preserve the original language of the input text - if the input is in a specific language, respond in that same language.`;
 
     if (modeInfo.type === 'custom') {
         const customMode = settings.customModes[modeInfo.key];
@@ -938,7 +938,7 @@ async function generatePrompt(text, modeInfo, settings) {
 
     // Enhanced built-in prompts with better context awareness
     const prompts = {
-        retone: `Analyze the context, intent, and target audience of the provided text. Rewrite it to elevate its tone, enhance clarity and flow, fix subtle grammatical flaws, and select more contextually appropriate, sophisticated vocabulary. Make it sound polished, articulate, and well-crafted while strictly preserving the underlying message, core facts, and original intent.`,
+        retone: `Analyze the context, intent, and tone of the provided text. Rewrite it to elevate its tone, enhance clarity and flow, fix grammatical flaws, and select more contextually appropriate vocabulary. Try to keep the original tone intact.`,
         
         humanize: `Rewrite this text to sound more natural and human-like. Use conversational language, vary sentence structures, and make it feel like a real person wrote it. Avoid overly formal or robotic phrasing. Add natural flow and personality while preserving the core message.`,
         
@@ -1022,6 +1022,9 @@ function getTemperatureForMode(mode) {
 }
 
 function postProcessResult(text, mode) {
+    // Remove code fences if LLM wrapped response in codeblock
+    text = text.replace(/^```[a-z]*\r?\n([\s\S]*?)\r?\n```$/i, '$1');
+
     // Remove potential wrapping quotes
     if ((text.startsWith('"') && text.endsWith('"')) || 
         (text.startsWith("'") && text.endsWith("'"))) {
@@ -1033,12 +1036,6 @@ function postProcessResult(text, mode) {
     text = text.replace(/\*(.*?)\*/g, '$1');     // Italic
     text = text.replace(/`([^`]+)`/g, '$1');     // Inline code
     text = text.replace(/^#+\s+/gm, '');         // Headers
-    
-    // Remove list formatting for non-list modes
-    if (!['detailed'].includes(mode)) {
-        text = text.replace(/^[\*\-\+]\s+/gm, '');
-        text = text.replace(/^\d+\.\s+/gm, '');
-    }
     
     // Remove common preambles
     const preambles = [
@@ -1055,9 +1052,9 @@ function postProcessResult(text, mode) {
         text = text.replace(pattern, '');
     }
     
-    // Clean up extra whitespace
-    text = text.replace(/\n{3,}/g, '\n\n');
-    text = text.replace(/\s{2,}/g, ' ');
+    // Clean up excessive whitespace while strictly preserving intentional single and double line breaks
+    text = text.replace(/\r\n/g, '\n');
+    text = text.replace(/\n{4,}/g, '\n\n\n');
     
     return text.trim();
 }
