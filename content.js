@@ -198,15 +198,26 @@ window.addEventListener('message', (event) => {
         if (!text) return;
 
         const btn = getOrCreateButton();
+        if (btn.classList.contains('loading')) return;
         btn.classList.add('loading');
+
+        let cleared = false;
+        const stopSpin = () => {
+            if (!cleared) {
+                cleared = true;
+                btn.classList.remove('loading');
+            }
+        };
+
+        // Safety fallback timer so it never spins indefinitely
+        const timer = setTimeout(stopSpin, 8000);
 
         safeSendMessage({
             action: 'triggerQuickRewrite',
             text: text
         }, () => {
-            setTimeout(() => {
-                btn.classList.remove('loading');
-            }, 600);
+            clearTimeout(timer);
+            stopSpin();
         });
     }
 

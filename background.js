@@ -1104,7 +1104,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'triggerQuickRewrite') {
         getSettings().then(async (settings) => {
             const tabId = sender.tab?.id;
-            if (!tabId) return;
+            if (!tabId) {
+                sendResponse({ success: false, error: 'No active tab' });
+                return;
+            }
 
             const defaultKey = settings.defaultRewriteMode || 'retone';
             const modeInfo = defaultKey.startsWith('custom_')
@@ -1114,11 +1117,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             const text = (message.text || '').trim();
             if (!text) {
                 notifyUser(tabId, "Please type or select some text to rewrite.", true);
+                sendResponse({ success: false, error: 'Empty text' });
                 return;
             }
 
             if (text.length > settings.maxTextLength) {
                 notifyUser(tabId, `Text exceeds maximum length of ${settings.maxTextLength} characters`, true);
+                sendResponse({ success: false, error: 'Text exceeds limit' });
                 return;
             }
 
@@ -1137,11 +1142,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         }
                         notifyUser(tabId, "Text rewritten successfully!", false, 2000);
                     }
+                    sendResponse({ success: true });
+                } else {
+                    sendResponse({ success: false, error: 'No output generated' });
                 }
             } catch (err) {
                 console.error("Quick rewrite failed:", err);
                 notifyUser(tabId, getUserFriendlyError(err), true);
+                sendResponse({ success: false, error: err.message });
             }
+        }).catch(err => {
+            sendResponse({ success: false, error: err.message });
         });
         return true;
     }
