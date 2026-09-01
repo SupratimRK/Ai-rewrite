@@ -1199,85 +1199,189 @@ function replaceTextWithStoredSelection(replacementText, selectionState) {
     }
 }
 
-// Enhanced text replacement function that runs in the page context
-function replaceSelectedTextEnhanced(replacementText) {
-    const activeElement = document.activeElement;
-    let success = false;
-    let reason = "Unknown error";
+// Enhanced universal text replacement function for all platforms (WhatsApp Web, Reddit, etc.)
+function replaceSelectedTextEnhanced(replacementText, originalText) {
+    // Helper: Find target editable element
+    function findTargetEditable(targetText) {
+        let activeEl = document.activeElement;
+        const sel = window.getSelection();
 
-    if (!activeElement) {
-        return { success: false, reason: "No active element found" };
+        if (activeEl && activeEl !== document.body && (activeEl.isContentEditable || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
+            return activeEl;
+        }
+
+        if (sel && sel.rangeCount > 0) {
+            let node = sel.anchorNode;
+            while (node && node !== document.body) {
+                if (node.nodeType === 1 && (node.isContentEditable || node.tagName === 'TEXTAREA' || node.tagName === 'INPUT' || node.getAttribute('role') === 'textbox')) {
+                    return node;
+                }
+                node = node.parentNode;
+            }
+        }
+
+        if (targetText) {
+            const candidates = document.querySelectorAll(
+                'div[contenteditable="true"], [role="textbox"], textarea, input, .ProseMirror, .public-DraftEditor-content, .copyable-text, [data-lexical-editor="true"], div[data-tab="10"]'
+            );
+            for (const el of candidates) {
+                const val = el.value || el.innerText || el.textContent;
+                if (val && val.includes(targetText)) {
+                    return el;
+                }
+            }
+        }
+
+        return activeEl || document.body;
+    }
+
+    // Helper: Select text across nodes
+    function selectTextInContainer(container, textToSelect) {
+        if (!container || !textToSelect) return false;
+        const sel = window.getSelection();
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        for (const node of nodes) {
+            const idx = node.textContent.indexOf(textToSelect);
+            if (idx !== -1) {
+                const range = document.createRange();
+                range.setStart(node, idx);
+                range.setEnd(node, idx + textToSelect.length);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                return true;
+            }
+        }
+
+        let fullText = '';
+        const nodeRanges = [];
+        for (const node of nodes) {
+            const start = fullText.length;
+            const end = start + node.textContent.length;
+            nodeRanges.push({ node, start, end });
+            fullText += node.textContent;
+        }
+
+        const matchIdx = fullText.indexOf(textToSelect);
+        if (matchIdx !== -1) {
+            const matchEnd = matchIdx + textToSelect.length;
+            let startNode = null, startOffset = 0;
+            let endNode = null, endOffset = 0;
+
+            for (const nr of nodeRanges) {
+                if (!startNode && matchIdx >= nr.start && matchIdx < nr.end) {
+                    startNode = nr.node;
+                    startOffset = matchIdx - nr.start;
+                }
+                if (matchEnd > nr.start && matchEnd <= nr.end) {
+                    endNode = nr.node;
+                    endOffset = matchEnd - nr.start;
+                    break;
+                }
+            }
+
+            if (startNode && endNode) {
+                const range = document.createRange();
+                range.setStart(startNode, startOffset);
+                range.setEnd(endNode, endOffset);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    const container = findTargetEditable(originalText);
+    if (!container || container === document.body) {
+        return { success: false, reason: "No editable container found" };
     }
 
     try {
-        // Handle textarea and input elements
-        if (activeElement.tagName === 'TEXTAREA' || 
-            (activeElement.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeElement.type))) {
-            
-            const start = activeElement.selectionStart;
-            const end = activeElement.selectionEnd;
-            
-            if (start !== end) {
-                // Replace selected text
-                const beforeText = activeElement.value.substring(0, start);
-                const afterText = activeElement.value.substring(end);
-                activeElement.value = beforeText + replacementText + afterText;
-                
-                // Set cursor position at end of replaced text
-                const newPosition = start + replacementText.length;
-                activeElement.setSelectionRange(newPosition, newPosition);
-                
-                // Trigger events
-                activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-                activeElement.dispatchEvent(new Event('change', { bubbles: true }));
-                
-                success = true;
-                reason = "Text replaced in input/textarea";
-            } else {
-                reason = "No text selected in input/textarea";
+        container.focus();
+
+        // Standard Input / Textarea
+        if (container.tagName === 'TEXTAREA' || 
+            (container.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(container.type))) {
+            const proto = container.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+            const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+            let start = container.selectionStart;
+            let end = container.selectionEnd;
+            const val = container.value;
+
+            if (start === end && originalText) {
+                const idx = val.indexOf(originalText);
+                if (idx !== -1) {
+                    start = idx;
+                    end = idx + originalText.length;
+                }
             }
-        }
-        // Handle contentEditable elements
-        else if (activeElement.isContentEditable) {
-            const selection = window.getSelection();
-            
-            if (selection.rangeCount > 0 && !selection.isCollapsed) {
-                const range = selection.getRangeAt(0);
-                range.deleteContents();
-                
-                const textNode = document.createTextNode(replacementText);
-                range.insertNode(textNode);
-                
-                // Move cursor to end of inserted text
-                range.setStartAfter(textNode);
-                range.setEndAfter(textNode);
-                selection.removeAllRanges();
-                selection.addRange(range);
-                
-                // Trigger events
-                activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-                activeElement.dispatchEvent(new Event('change', { bubbles: true }));
-                
-                success = true;
-                reason = "Text replaced in contentEditable";
+
+            const before = val.substring(0, start);
+            const after = val.substring(end);
+            const newVal = before + replacementText + after;
+
+            if (descriptor && descriptor.set) {
+                descriptor.set.call(container, newVal);
             } else {
-                reason = "No text selected in contentEditable element";
+                container.value = newVal;
             }
-        } else {
-            reason = "Element is not editable";
+
+            container.setSelectionRange(start + replacementText.length, start + replacementText.length);
+            container.dispatchEvent(new Event('input', { bubbles: true }));
+            container.dispatchEvent(new Event('change', { bubbles: true }));
+            return { success: true, reason: "Text replaced in input/textarea" };
         }
-        
-        if (success) {
-            // Focus the element to ensure cursor is visible
-            activeElement.focus();
+
+        // ContentEditable / Complex Editor (WhatsApp Web, Reddit, Facebook, etc.)
+        if (container.isContentEditable || container.getAttribute('role') === 'textbox') {
+            const sel = window.getSelection();
+            if (originalText && (!sel.rangeCount || sel.isCollapsed || sel.toString().trim() !== originalText.trim())) {
+                selectTextInContainer(container, originalText);
+            }
+
+            let inserted = false;
+            try {
+                inserted = document.execCommand('insertText', false, replacementText);
+            } catch (e) {
+                inserted = false;
+            }
+
+            if (!inserted) {
+                try {
+                    const ev = new InputEvent('beforeinput', {
+                        bubbles: true,
+                        cancelable: true,
+                        inputType: 'insertText',
+                        data: replacementText
+                    });
+                    container.dispatchEvent(ev);
+                } catch (e) {}
+
+                if (sel.rangeCount > 0) {
+                    const range = sel.getRangeAt(0);
+                    range.deleteContents();
+                    const textNode = document.createTextNode(replacementText);
+                    range.insertNode(textNode);
+                    range.setStartAfter(textNode);
+                    range.setEndAfter(textNode);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            }
+
+            container.dispatchEvent(new Event('input', { bubbles: true }));
+            container.dispatchEvent(new Event('change', { bubbles: true }));
+            return { success: true, reason: "Text replaced in contentEditable" };
         }
-        
+
+        return { success: false, reason: "Element is not editable" };
     } catch (error) {
         console.error("Error replacing text:", error);
-        reason = error.message;
+        return { success: false, reason: error.message };
     }
-
-    return { success, reason };
 }
 
 // === MODERN GLASSMORPHIC NOTIFICATION SYSTEM ===
@@ -1446,20 +1550,42 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     const oldOverlay = document.getElementById('--ai-rewriter-highlight-overlay');
     if (oldOverlay) oldOverlay.remove();
 
-    let activeEl = document.activeElement;
-    const sel = window.getSelection();
+    // Helper: Find target editable element (WhatsApp Web, Reddit, etc.)
+    function findTargetEditable(targetText) {
+        let activeEl = document.activeElement;
+        const sel = window.getSelection();
 
-    // If activeEl is body, find the closest editable container from selection
-    if ((!activeEl || activeEl === document.body) && sel && sel.rangeCount > 0) {
-        let node = sel.anchorNode;
-        while (node && node !== document.body) {
-            if (node.nodeType === 1 && (node.isContentEditable || node.tagName === 'TEXTAREA' || node.tagName === 'INPUT')) {
-                activeEl = node;
-                break;
-            }
-            node = node.parentNode;
+        if (activeEl && activeEl !== document.body && (activeEl.isContentEditable || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
+            return activeEl;
         }
+
+        if (sel && sel.rangeCount > 0) {
+            let node = sel.anchorNode;
+            while (node && node !== document.body) {
+                if (node.nodeType === 1 && (node.isContentEditable || node.tagName === 'TEXTAREA' || node.tagName === 'INPUT' || node.getAttribute('role') === 'textbox')) {
+                    return node;
+                }
+                node = node.parentNode;
+            }
+        }
+
+        if (targetText) {
+            const candidates = document.querySelectorAll(
+                'div[contenteditable="true"], [role="textbox"], textarea, input, .ProseMirror, .public-DraftEditor-content, .copyable-text, [data-lexical-editor="true"], div[data-tab="10"]'
+            );
+            for (const el of candidates) {
+                const val = el.value || el.innerText || el.textContent;
+                if (val && val.includes(targetText)) {
+                    return el;
+                }
+            }
+        }
+
+        return activeEl || document.body;
     }
+
+    const activeEl = findTargetEditable(originalText);
+    const sel = window.getSelection();
 
     let targetType = 'none';
     let targetInput = null;
@@ -1574,8 +1700,8 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         activeEl.setSelectionRange(inputStart, inputStart + previewText.length);
         anchorRect = activeEl.getBoundingClientRect();
     }
-    // Case 2: ContentEditable (Facebook, Notion, Twitter, Gmail, etc.)
-    else if (activeEl && activeEl.isContentEditable) {
+    // Case 2: ContentEditable (WhatsApp Web, Reddit, Facebook, Notion, etc.)
+    else if (activeEl && (activeEl.isContentEditable || activeEl.getAttribute('role') === 'textbox')) {
         targetType = 'contentEditable';
         activeEl.focus();
 
@@ -1595,18 +1721,35 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
             anchorRect = activeEl.getBoundingClientRect();
         }
 
-        // Insert rewritten text via execCommand to update React/Lexical state
+        // Insert rewritten text via execCommand & inputEvent to update WhatsApp / Reddit / Lexical state
+        let inserted = false;
         try {
-            document.execCommand('insertText', false, previewText);
+            inserted = document.execCommand('insertText', false, previewText);
         } catch (e) {
-            console.warn("execCommand failed, fallback to range insertion:", e);
-            if (range) {
-                range.deleteContents();
+            inserted = false;
+        }
+
+        if (!inserted) {
+            try {
+                const ev = new InputEvent('beforeinput', {
+                    bubbles: true,
+                    cancelable: true,
+                    inputType: 'insertText',
+                    data: previewText
+                });
+                activeEl.dispatchEvent(ev);
+            } catch (e) {}
+
+            if (sel && sel.rangeCount > 0) {
+                const r = sel.getRangeAt(0);
+                r.deleteContents();
                 const textNode = document.createTextNode(previewText);
-                range.insertNode(textNode);
+                r.insertNode(textNode);
             }
         }
+
         activeEl.dispatchEvent(new Event('input', { bubbles: true }));
+        activeEl.dispatchEvent(new Event('change', { bubbles: true }));
 
         // Re-calculate anchor rect after text replacement
         if (sel && sel.rangeCount > 0) {
@@ -1695,10 +1838,13 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
             activeEl.focus();
             const found = selectTextInContainer(activeEl, previewText);
             if (found) {
+                let revertedSuccess = false;
                 try {
-                    document.execCommand('insertText', false, originalText);
+                    revertedSuccess = document.execCommand('insertText', false, originalText);
                 } catch (e) {
-                    console.warn("ContentEditable revert insertText failed:", e);
+                    revertedSuccess = false;
+                }
+                if (!revertedSuccess) {
                     const curSel = window.getSelection();
                     if (curSel && curSel.rangeCount > 0) {
                         const r = curSel.getRangeAt(0);
