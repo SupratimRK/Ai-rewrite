@@ -1,6 +1,6 @@
 {
   "name": "ai-text-rewriter-pro",
-  "version": "2.6.0",
+  "version": "3.0.0",
   "description": "Advanced AI-powered Chrome extension for text rewriting. Transform your writing with 15 focused built-in modes including Retone, custom prompts, and professional writing assistance.",
   "main": "background.js",
   "scripts": {

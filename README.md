@@ -4,9 +4,9 @@
 
 # ✨ AI Text Rewriter Pro - Advanced Chrome Extension for AI-Powered Writing ✨
 
-**(Transform your writing with OpenAI and OpenAI-compatible APIs! 🚀)**
+**(Transform your writing across the web with OpenAI and OpenAI-compatible APIs! 🚀)**
 
-[![Version](https://img.shields.io/badge/Version-2.6.0-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
+[![Version](https://img.shields.io/badge/Version-3.0.0-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
 
 ## 📸 Visual Showcase
 
@@ -35,56 +35,44 @@
   </table>
 </div>
 
-**AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using OpenAI and OpenAI-compatible APIs. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **15 built-in rewriting modes including Retone**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
+**AI Text Rewriter Pro** is a modern Chrome extension that seamlessly integrates AI rewriting into any webpage, textbox, and rich-text editor. Featuring **15 built-in modes including Retone**, an **in-textbox quick AI bubble**, **in-place preview toolbar**, **customizable aggressiveness slider (0.0 to 2.0)**, and compatibility with **WhatsApp Web, Reddit, ChatGPT, and Notion**.
 
 ## 🎯 Quick Start Guide
 
-1. **Install**: [Download from Chrome Web Store](https://chrome.google.com/webstore) (coming soon) or load unpacked
-2. **Setup**: Add your OpenAI API key in extension settings (or use OpenAI-compatible API endpoint)
-3. **Use**: Select text on any website → Right-click → Choose AI rewriting mode
-4. **Enjoy**: Watch your writing transform with professional AI assistance!
-
-## 🔍 Keywords & Search Terms
-
-**Chrome Extension AI Writing Tools** | **OpenAI Text Rewriter** | **AI Grammar Checker** | **Professional Writing Assistant** | **Content Creation Tools** | **Text Improvement Software** | **AI-Powered Editor** | **Writing Enhancement Extension** | **Productivity Tools for Writers** | **Automated Content Editing**
+1. **Install**: [Download from Chrome Web Store](https://chrome.google.com/webstore) or load unpacked
+2. **Setup**: Add your OpenAI API key or connect to any OpenAI-compatible provider (Gemini, Groq, OpenRouter, DeepSeek, Ollama, LM Studio)
+3. **Use**: Click the in-textbox AI bubble or select text → Right-click → Choose your AI rewrite mode
+4. **Enjoy**: Watch your writing elevate with clean, high-precision AI assistance!
 
 ---
 
-Ever stared at a sentence you wrote and thought, "Wow, I sound like a bored robot trying to order pizza"? 🤖🍕 This extension is your secret weapon! It uses **OpenAI** (GPT-4o, GPT-4o-mini, or any OpenAI-compatible API like LM Studio, Ollama, etc.) to magically rewrite your text directly in input fields and text areas across the web.
+## 🚀 What's New in Version 3.0.0! 🚀
 
-Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully better words. Sometimes... *interesting* words. It's AI, folks, it's a wild ride! 🎢
-
----
-
-## 🚀 What's New in Version 2.6.0! 🚀
-
-- 🎨 **Redesigned Studio UI** - Modern interface with high-contrast color iconography for all modes and settings
-- ⚡ **Interactive Model Selector** - Native dropdown with 1-tap quick model chips and custom model manual input support
-- 🌓 **Interface Theme Override** - 3-way switcher (System, Light, Dark) in General settings with instant zero-flicker persistence
-- 🛡️ **Full Manifest V3 CSP Compliance** - Zero inline scripts, precompiled standalone stylesheet, and optimized external loader
-- 🤖 **Official Provider Brand Logos** - High-contrast brand marks for OpenAI, OpenRouter, Groq, Google Gemini, DeepSeek, Vercel, Ollama, and LM Studio
-- ✨ **Curated Fast AI Models** - Evergreen model pointers (`chat-latest`, `gemini-flash-lite-latest`, `deepseek-v4-flash`, `openrouter/auto`)
-- 🎭 **15 Writing Modes** - Retone, Humanize, Professional, Academic, Technical, and more
-- ↶ **Undo Functionality** - Instantly revert any rewrite
-- ⌨️ **Keyboard Shortcuts** - Lightning-fast rewriting with customizable hotkeys
-- 📊 **Usage Analytics** - Track your writing improvements and token metrics
+- 🫧 **In-Textbox Quick AI Bubble** - Compact circular brand bubble inside textboxes and chat inputs for 1-click rewrites
+- 🎛️ **AI Aggressiveness & Temperature Slider** - Custom gradient slider from `0.0` (Strict & Precise) to `2.0` (Wild & Creative) with real-time feedback
+- 🛡️ **In-Place Floating Confirmation Toolbar** - Dynamic mode badge with official brand icon, green `Accept [Enter]`, and frosted `Decline [Esc]`
+- 🌐 **Universal Rich-Text Compatibility** - Full support for WhatsApp Web, Reddit (ProseMirror), Lexical, Notion, ChatGPT, and contentEditable fields
+- 🎯 **Configurable Default Rewrite Mode** - Choose your favorite mode (Retone, Humanize, Professional, Grammar, or Custom) as the primary 1-click action
+- 🎨 **Modernized Iconography & Studio UI** - High-contrast color icons for all 15 modes, tabs, and action controls
+- 🌓 **Zero-Flicker Theme Override** - 3-way switcher (System, Light, Dark) with instant synchronous persistence
+- 🤖 **Multi-Provider LLM Presets** - 1-click configuration for OpenAI, OpenRouter, Groq, Google Gemini, DeepSeek, Vercel, Ollama, and LM Studio
+- ↶ **Atomic Undo & History** - Safely revert any changes with keyboard shortcuts (`Ctrl+Shift+Z`) or toolbar dismissal
+- 📊 **Usage & Token Analytics** - Track words rewritten, tokens saved, and most-used modes
 
 ---
 
-## 🚀 Features (The Shiny Bits!) 🚀
+## 🚀 Features 🚀
 
-*   **🪄 Magic Wand Right-Click Action:** Select text in almost any editable field, right-click, and BOOM - rewrite options appear!
-*   **🎭 15 Professional Writing Modes:** Featuring Retone, Humanize, Professional, Academic, Technical, and more!
-*   **🎨 Custom Mode Creator:** Build your own rewriting styles with personalized prompts
-*   **↶ Undo Functionality:** Instantly revert any rewrite with a single click
-*   **⌨️ Keyboard Shortcuts:** Lightning-fast rewriting with customizable hotkeys
-*   **🧠 Powered by OpenAI:** Use GPT-4o, GPT-4o-mini, GPT-3.5-turbo, or any OpenAI-compatible API
-*   **🌐 Flexible API Support:** Works with OpenAI, LM Studio, Ollama, and other compatible endpoints
-*   **🔑 Secure API Key Storage:** Uses `chrome.storage.sync` to save your API key (syncs across your Chrome browsers!)
-*   **🎨 Modern Options Interface:** Dark mode support and intuitive settings management
-*   **📊 Usage Analytics:** Track your writing improvements and most-used modes
-*   **📢 Smart Notifications:** Helpful popups that tell you what's happening (and fade away gracefully)
-*   **🛡️ Enhanced Error Handling:** Robust retry logic and user-friendly error messages
+*   **🫧 1-Click In-Textbox Quick Bubble:** Hover and click the brand bubble in active textboxes and chat prompts for instant rewriting!
+*   **🪄 Right-Click Context Menu:** Select text anywhere on the web and pick from 15 curated writing modes
+*   **🎛️ Dynamic Aggressiveness Control:** Adjust AI temperature from 0.0 to 2.0 with dynamic per-mode calibration
+*   **🎭 15 Built-in Writing Modes:** Retone, Humanize, Professional, Academic, Technical, Casual, Confident, Empathetic, and more
+*   **🎨 Custom Mode Studio:** Create and save your own rewrite prompts with custom instructions
+*   **🛡️ In-Place Preview & Safe Revert:** Review changes inline and accept or decline with Enter / Esc
+*   **🌐 WhatsApp Web & Reddit Compatible:** Seamless multi-phase DOM dispatch for modern web apps
+*   **⌨️ Customizable Keyboard Shortcuts:** Fast hotkeys for Retone (`Ctrl+Shift+R`), Humanize (`Ctrl+Shift+H`), Professional (`Ctrl+Shift+P`), and Grammar (`Ctrl+Shift+G`)
+*   **🧠 Universal LLM Support:** Compatible with OpenAI, Google Gemini, Groq, DeepSeek, OpenRouter, Ollama, and LM Studio
+*   **🔑 Secure Local Storage:** API keys are stored securely in `chrome.storage.sync` with zero third-party telemetry
 
 ---
 

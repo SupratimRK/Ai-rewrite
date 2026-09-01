@@ -5,6 +5,23 @@ All notable changes to the AI Text Rewriter Pro extension will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-09-02
+
+### Added
+- **In-Textbox AI Quick Bubble**: Non-intrusive 26px circular frosted glass bubble displaying the official extension brand icon inside active textboxes, chat inputs (ChatGPT, Claude, Copilot), textareas, and rich editors for instant 1-click rewrites
+- **Dynamic AI Aggressiveness & Creativity (Temperature) Slider**: Range from `0.0` to `2.0` with live visual feedback badges (`Strict`, `Subtle`, `Balanced`, `Creative`, `High Variance`, `Wild`) and custom gradient track styling
+- **In-Place Floating Confirmation Toolbar**: Clean floating action pill displaying the dynamic rewrite mode with official brand icon, green `Accept [Enter]`, and frosted `Decline [Esc]` with atomic DOM reversion
+- **Universal Rich-Text Compatibility**: Multi-phase DOM dispatcher (`execCommand`, `InputEvent('beforeinput')`, `change`) for full compatibility with WhatsApp Web, Reddit (ProseMirror), Lexical, Notion, and complex `contenteditable` fields
+- **Configurable Default Rewrite Mode**: Choose any built-in mode (Retone, Humanize, Professional, Fix Grammar, etc.) or custom prompt as the primary 1-click rewrite action in Settings
+
+### Changed
+- Removed hardcoded model temperatures in favor of the dynamic user-controlled aggressiveness slider
+- Overhauled context menus and popover UI to use modern iconography, removing legacy emoji clutter
+- Refined tooltip formatting to cleanly display active modes without nested brackets
+- Perfected vertical centering alignment for single-line inputs and chat bars
+
+---
+
 ## [2.6.0] - 2026-09-02
 
 ### Added
