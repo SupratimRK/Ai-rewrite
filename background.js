@@ -46,6 +46,12 @@ const CONTEXT_MENU_ID = "GEMINI_REWRITE";
 
 // Built-in modes with enhanced prompts and metadata
 const BUILT_IN_MODES = {
+    retone: {
+        name: "Retone (Context & Polish)",
+        description: "Intelligently adapt tone, enhance clarity, grammar, and vocabulary based on context",
+        icon: "✨",
+        category: "tone"
+    },
     humanize: {
         name: "Humanize (Make Natural)",
         description: "Make text sound more natural and conversational",
@@ -129,48 +135,6 @@ const BUILT_IN_MODES = {
         description: "Promotional and engaging copy",
         icon: "📢",
         category: "specialized"
-    },
-    cheeky: {
-        name: "Cheeky & Playful",
-        description: "Witty and slightly sarcastic",
-        icon: "😏",
-        category: "fun"
-    },
-    newby: {
-        name: "Beginner-Friendly",
-        description: "Simple language for newcomers",
-        icon: "🌱",
-        category: "fun"
-    },
-    composer: {
-        name: "Compose from Instruction",
-        description: "Generate new content from prompts",
-        icon: "✨",
-        category: "generation"
-    },
-    translate: {
-        name: "Translate to English",
-        description: "Convert text to clear English",
-        icon: "🌍",
-        category: "utility"
-    },
-    summarize: {
-        name: "Summarize Key Points",
-        description: "Extract main ideas concisely",
-        icon: "📝",
-        category: "utility"
-    },
-    expand: {
-        name: "Expand & Elaborate",
-        description: "Add more detail and context",
-        icon: "🔍",
-        category: "structure"
-    },
-    simplify: {
-        name: "Simplify & Clarify",
-        description: "Make complex text easier to understand",
-        icon: "🔧",
-        category: "utility"
     }
 };
 
@@ -236,10 +200,21 @@ async function initializeDefaultSettings() {
             'enableKeyboardShortcuts',
             'darkMode'
         ], (result) => {
+            const validBuiltInKeys = Object.keys(BUILT_IN_MODES);
+            let enabledModes = result.enabledModes;
+            if (Array.isArray(enabledModes)) {
+                enabledModes = enabledModes.filter(k => validBuiltInKeys.includes(k));
+                if (!enabledModes.includes('retone')) {
+                    enabledModes.unshift('retone');
+                }
+            } else {
+                enabledModes = validBuiltInKeys;
+            }
+
             const defaults = {
                 selectedModel: result.selectedModel || CONFIG.DEFAULT_MODEL,
                 customModes: result.customModes || {},
-                enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
+                enabledModes: enabledModes,
                 maxTextLength: result.maxTextLength || CONFIG.MAX_TEXT_LENGTH,
                 enableUndo: result.enableUndo !== false,
                 enablePreviewMode: result.enablePreviewMode !== false,
@@ -399,13 +374,14 @@ async function setupContextMenus() {
 
 async function checkApiKeyStatus() {
     return new Promise((resolve) => {
-        chrome.storage.sync.get(['openaiApiKey'], (result) => {
-            if (!result.openaiApiKey) {
-                console.log("OpenAI API Key not found. User needs to configure.");
+        chrome.storage.sync.get(['openaiApiKey', 'openaiBaseUrl'], (result) => {
+            const isLocal = result.openaiBaseUrl && (result.openaiBaseUrl.includes('localhost') || result.openaiBaseUrl.includes('127.0.0.1'));
+            if (!result.openaiApiKey && !isLocal) {
+                console.log("API Key not found. User needs to configure.");
                 // Show notification to configure API key
                 showApiKeyNotification();
             } else {
-                console.log("OpenAI API Key found.");
+                console.log("API Key/Endpoint configured.");
             }
             resolve();
         });
@@ -526,12 +502,20 @@ async function getSettings() {
             'enableUsageTracking',
             'enableKeyboardShortcuts'
         ], (result) => {
+            const validBuiltInKeys = Object.keys(BUILT_IN_MODES);
+            let enabledModes = result.enabledModes;
+            if (Array.isArray(enabledModes)) {
+                enabledModes = enabledModes.filter(k => validBuiltInKeys.includes(k));
+            } else {
+                enabledModes = validBuiltInKeys;
+            }
+            
             resolve({
                 openaiApiKey: result.openaiApiKey || '',
                 openaiBaseUrl: result.openaiBaseUrl || '',
                 selectedModel: result.selectedModel || CONFIG.DEFAULT_MODEL,
                 customModes: result.customModes || {},
-                enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
+                enabledModes: enabledModes,
                 maxTextLength: result.maxTextLength || CONFIG.MAX_TEXT_LENGTH,
                 enableUndo: result.enableUndo !== false,
                 enablePreviewMode: result.enablePreviewMode !== false,
@@ -706,11 +690,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     // Validate text selection
     if (!info.selectionText || info.selectionText.trim() === "") {
-        const isComposer = info.menuItemId.includes('composer');
-        const message = isComposer 
-            ? "Please select an instruction first (e.g., 'write email asking for update')"
-            : "Please select text to rewrite";
-        notifyUser(tab.id, `⚠️ ${message}`, true);
+        notifyUser(tab.id, "⚠️ Please select text to rewrite", true);
         return;
     }
 
@@ -742,8 +722,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 async function performRewrite(tab, info, modeInfo, settings) {
     try {
-        // Validate API key first
-        if (!settings.openaiApiKey || settings.openaiApiKey.trim() === '') {
+        const isLocal = settings.openaiBaseUrl && (settings.openaiBaseUrl.includes('localhost') || settings.openaiBaseUrl.includes('127.0.0.1'));
+        // Validate API key first (skip for local endpoints)
+        if (!isLocal && (!settings.openaiApiKey || settings.openaiApiKey.trim() === '')) {
             notifyUser(tab.id, "❌ No API key configured - Click to open settings", true, 6000);
             // Show setup notification
             showApiKeyNotification();
@@ -884,12 +865,18 @@ async function callOpenAIApi(apiKey, baseUrl, text, modeInfo, settings) {
     const timeout = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
 
     try {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (apiKey && apiKey.trim() !== '') {
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        } else if (baseUrl && (baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1'))) {
+            headers['Authorization'] = 'Bearer local';
+        }
+
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
+            headers: headers,
             body: JSON.stringify(requestBody),
             signal: controller.signal
         });
@@ -937,6 +924,8 @@ async function generatePrompt(text, modeInfo, settings) {
 
     // Enhanced built-in prompts with better context awareness
     const prompts = {
+        retone: `Analyze the context, intent, and target audience of the provided text. Rewrite it to elevate its tone, enhance clarity and flow, fix subtle grammatical flaws, and select more contextually appropriate, sophisticated vocabulary. Make it sound polished, articulate, and well-crafted while strictly preserving the underlying message, core facts, and original intent.`,
+        
         humanize: `Rewrite this text to sound more natural and human-like. Use conversational language, vary sentence structures, and make it feel like a real person wrote it. Avoid overly formal or robotic phrasing. Add natural flow and personality while preserving the core message.`,
         
         grammar: `Fix only the grammar, spelling, and punctuation errors in this text. Keep the original meaning, tone, and style exactly the same. Make minimal changes - only correct actual errors without changing the author's voice or intent.`,
@@ -963,37 +952,21 @@ async function generatePrompt(text, modeInfo, settings) {
         
         academic: `Rewrite this text in an academic and scholarly style. Use formal academic language, proper citation style markers where appropriate, objective tone, and structured argumentation suitable for academic writing.`,
         
-        marketing: `Rewrite this text as engaging marketing copy. Use persuasive language, highlight benefits, create urgency or excitement, and make it compelling for the target audience while maintaining authenticity.`,
-        
-        cheeky: `Rewrite this text with a playful, cheeky, and slightly sarcastic tone. Add wit and humor while keeping it appropriately irreverent. Make it entertaining while preserving the essential message.`,
-        
-        newby: `Rewrite this text as if written by someone new to the topic. Use simpler language, show enthusiasm and curiosity, and include the perspective of someone learning about the subject for the first time.`,
-        
-        composer: `Generate new content based on this instruction. Create original text that fulfills the request clearly and completely. If it's a request like "write email about...", create the full email content. If it's "ideas for...", provide a well-structured list.`,
-        
-        translate: `Translate this text to clear, natural English. If it's already in English, improve the clarity, natural flow, and readability while preserving the original meaning and intent.`,
-        
-        summarize: `Create a concise summary of this text. Extract the key points, main ideas, and essential information, presenting them clearly and briefly while maintaining the logical structure.`,
-        
-        expand: `Expand and elaborate on this text. Add more detail, context, examples, and explanations to make it more comprehensive and thorough while maintaining the original focus and direction.`,
-        
-        simplify: `Simplify this text to make it easier to understand. Use plain language, shorter sentences, common words, and clear explanations while preserving all the important information and meaning.`
+        marketing: `Rewrite this text as engaging marketing copy. Use persuasive language, highlight benefits, create urgency or excitement, and make it compelling for the target audience while maintaining authenticity.`
     };
 
-    const modePrompt = prompts[modeInfo.key] || prompts.humanize;
+    const modePrompt = prompts[modeInfo.key] || prompts.retone || prompts.humanize;
     return `${modePrompt}\n\n${baseInstruction}\n\nInput text:\n"${text}"\n\nOutput:`;
 }
 
 function getTemperatureForMode(mode) {
     const temperatures = {
         grammar: 0.7,
+        retone: 0.75,
         professional: 0.8,
         technical: 0.8,
         academic: 0.8,
         polite: 0.9,
-        translate: 0.9,
-        summarize: 0.9,
-        simplify: 0.9,
         humanize: 1.0,
         casual: 1.0,
         confident: 1.0,
@@ -1001,14 +974,10 @@ function getTemperatureForMode(mode) {
         persuasive: 1.1,
         concise: 1.0,
         detailed: 1.0,
-        expand: 1.1,
         marketing: 1.2,
-        composer: 1.2,
-        creative: 1.4,
-        cheeky: 1.3,
-        newby: 1.2
+        creative: 1.4
     };
-    return temperatures[mode] || 1.2;
+    return temperatures[mode] || 1.0;
 }
 
 function postProcessResult(text, mode) {
@@ -1025,7 +994,7 @@ function postProcessResult(text, mode) {
     text = text.replace(/_{2,}(.*?)_{2,}/g, '$1'); // Underline
     
     // Remove list formatting for non-list modes
-    if (!['composer', 'summarize', 'detailed'].includes(mode)) {
+    if (!['detailed'].includes(mode)) {
         text = text.replace(/^[\*\-\+]\s+/gm, '');
         text = text.replace(/^\d+\.\s+/gm, '');
     }
@@ -1901,6 +1870,9 @@ chrome.commands.onCommand.addListener(async (command) => {
     console.log("Executing command:", command);
     
     switch (command) {
+        case 'rewrite-retone':
+            await executeShortcutRewrite(tab, 'retone');
+            break;
         case 'rewrite-humanize':
             await executeShortcutRewrite(tab, 'humanize');
             break;
@@ -1923,8 +1895,9 @@ async function executeShortcutRewrite(tab, mode) {
         // Get settings first to check API key
         const settings = await getSettings();
         
-        // Validate API key first
-        if (!settings.openaiApiKey || settings.openaiApiKey.trim() === '') {
+        const isLocal = settings.openaiBaseUrl && (settings.openaiBaseUrl.includes('localhost') || settings.openaiBaseUrl.includes('127.0.0.1'));
+        // Validate API key first (skip for local endpoints)
+        if (!isLocal && (!settings.openaiApiKey || settings.openaiApiKey.trim() === '')) {
             notifyUser(tab.id, "❌ No API key configured - Click to open settings", true, 6000);
             showApiKeyNotification();
             return;

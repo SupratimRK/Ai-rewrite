@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/badge/Version-2.5.1-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
 
-**AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using OpenAI and OpenAI-compatible APIs. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **21+ built-in rewriting modes**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
+**AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using OpenAI and OpenAI-compatible APIs. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **15 built-in rewriting modes including Retone**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
 
 ## 🎯 Quick Start Guide
 
@@ -31,14 +31,16 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 
 ## 🚀 What's New in Version 2.5.1! 🚀
 
-- � **Fixed Preview Mode** - Text injection now works reliably when clicking "Insert"
+- ✨ **New Context-Aware "Retone" Mode** - Intelligently analyzes writing context and rewrites with elevated tone, clarity, and enhanced vocabulary
+- 🧹 **Streamlined Modes** - Removed cluttered and sloppy modes for a focused 15-mode professional writing suite
+- 🛠️ **Fixed Preview Mode** - Text injection now works reliably when clicking "Insert"
 - ✨ **Improved Highlighting** - Input/textarea fields now get a golden outline highlight
-- �🔄 **OpenAI Integration** - Uses OpenAI instead of Google Gemini (since v2.5.0)
+- 🔄 **OpenAI Integration** - Uses OpenAI instead of Google Gemini (since v2.5.0)
 - 🌐 **Custom API Endpoints** - Support for OpenAI-compatible APIs (LM Studio, Ollama, etc.)
-- 🎭 **21 Professional Writing Modes** - From humanize to technical precision
+- 🎭 **15 Professional Writing Modes** - From context-aware Retone to technical precision
 - 🎨 **Custom Mode Creator** - Build your own rewriting styles
 - ↶ **Undo Functionality** - Instantly revert any rewrite
-- ⌨️ **Keyboard Shortcuts** - Lightning-fast rewriting with hotkeys
+- ⌨️ **Keyboard Shortcuts** - Lightning-fast rewriting with hotkeys (`Ctrl+Shift+R`, `Ctrl+Shift+H`, `Ctrl+Shift+P`, `Ctrl+Shift+G`)
 - 📊 **Usage Analytics** - Track your writing improvements
 - 🌙 **Dark Mode** - Easy on the eyes, beautiful interface
 - 🔄 **Multiple AI Models** - Choose from GPT-4o, GPT-4o-mini, or GPT-3.5-turbo
@@ -51,7 +53,7 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 ## 🚀 Features (The Shiny Bits!) 🚀
 
 *   **🪄 Magic Wand Right-Click Action:** Select text in almost any editable field, right-click, and BOOM - rewrite options appear!
-*   **🎭 21 Professional Writing Modes:** From humanize to technical precision, empathetic to persuasive - we've got every tone covered!
+*   **🎭 15 Professional Writing Modes:** Featuring Retone, Humanize, Professional, Academic, Technical, and more!
 *   **🎨 Custom Mode Creator:** Build your own rewriting styles with personalized prompts
 *   **↶ Undo Functionality:** Instantly revert any rewrite with a single click
 *   **⌨️ Keyboard Shortcuts:** Lightning-fast rewriting with customizable hotkeys
@@ -61,17 +63,18 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 *   **🎨 Modern Options Interface:** Dark mode support and intuitive settings management
 *   **📊 Usage Analytics:** Track your writing improvements and most-used modes
 *   **📢 Smart Notifications:** Helpful popups that tell you what's happening (and fade away gracefully)
-*   **🛡️ **Enhanced Error Handling:** Robust retry logic and user-friendly error messages
+*   **🛡️ Enhanced Error Handling:** Robust retry logic and user-friendly error messages
 
 ---
 
-## 🎭 17 Built-in Writing Modes
+## 🎭 15 Built-in Writing Modes
 
 | Mode | Purpose | Perfect For |
 |------|---------|-------------|
-| 📝 **Humanize** | Make text sound natural and conversational | Robot-like content, stiff writing |
-| ✅ **Grammar Fix** | Correct spelling and grammar only | Quick proofreading, error correction |
-| 👔 **Professional** | Business-appropriate formal tone | Emails, reports, official documents |
+| ✨ **Retone** | Context-aware tone, clarity, vocabulary & grammar polish | General refinement, elevating draft quality |
+| 🧑 **Humanize** | Make text sound natural and conversational | Robot-like content, stiff writing |
+| ✏️ **Grammar Fix** | Correct spelling and grammar errors only | Quick proofreading, error correction |
+| 💼 **Professional** | Business-appropriate formal tone | Emails, reports, official documents |
 | 🙏 **Polite** | Courteous and respectful language | Customer service, delicate situations |
 | 😊 **Casual** | Friendly, informal conversation | Social media, casual emails |
 | 💪 **Confident** | Assertive and decisive language | Presentations, negotiations |
@@ -80,12 +83,9 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 | ⚡ **Concise** | Clear and to-the-point | Headlines, summaries, tweets |
 | 📚 **Detailed** | Comprehensive and thorough | Explanations, tutorials, guides |
 | 🎨 **Creative** | Engaging and imaginative | Marketing copy, storytelling |
-| 🔬 **Technical** | Precise and specification-focused | Documentation, instructions |
-| 😏 **Cheeky** | Playful and slightly sarcastic | Social media, casual content |
-| 🎓 **Beginner-Friendly** | Simple and accessible language | Educational content, how-tos |
-| ✍️ **Composer** | Generate content from instructions | Create new text from prompts |
-| 🌍 **Translate** | Convert to English or improve clarity | International content, clarity |
-| 📄 **Summarize** | Extract key points concisely | Long documents, research |
+| ⚙️ **Technical** | Precise and specification-focused | Documentation, technical instructions |
+| 🎓 **Academic** | Scholarly and structured formal style | Academic papers, essays, reports |
+| 📢 **Marketing** | Promotional and engaging sales copy | Product launches, ads, landing pages |
 
 ---
 
@@ -98,7 +98,7 @@ Alright, since this isn't (yet?) on the Chrome Web Store (because who has time f
 1.  **Grab the Goods 🛍️:** Download the extension files. Either clone the repository or download the ZIP and unzip it somewhere you won't accidentally delete it later. Let's call this magical place the `ai-rewriter-extension` folder.
 2.  **Open Chrome's Secret Lair 🚪:** Open Google Chrome, type `chrome://extensions` in your address bar, and hit Enter. Spooooky!
 3.  **Flip the Super Secret Developer Switch 🕵️‍♀️:** Look for a toggle labeled "Developer mode" (usually in the top right corner). Click it. If it's on, you're basically a hacker now. Congrats.
-4.  **Shove the Folder at Chrome 욱:** Click the "Load unpacked" button that magically appeared. A file browser window will pop up.
+4.  **Shove the Folder at Chrome 🚀:** Click the "Load unpacked" button that magically appeared. A file browser window will pop up.
 5.  **Point and Shoot 👉:** Navigate to and select that `ai-rewriter-extension` folder (the one *containing* the `manifest.json` file, not the zip file!). Click "Select Folder" or "Open".
 6.  **Bask in the Glory (or fix errors) 🙏:** If all went well, you should see the "AI Text Rewriter Pro" extension card appear on the page! If you see angry red errors, you probably messed up step 5. Go back and try again, champ. 💪
 7.  **Pin for Easy Access:** Click the puzzle piece icon in Chrome's toolbar and pin the AI Text Rewriter Pro extension for quick access.
@@ -123,8 +123,10 @@ Alright, since this isn't (yet?) on the Chrome Web Store (because who has time f
 4. Watch the magic happen!
 
 **Keyboard Shortcuts:**
+- `Ctrl+Shift+R` - Retone selected text (Context, Clarity & Tone)
 - `Ctrl+Shift+H` - Humanize selected text
 - `Ctrl+Shift+P` - Professional tone
+- `Ctrl+Shift+G` - Fix grammar and spelling
 - `Ctrl+Shift+Z` - Undo last rewrite
 
 ---
@@ -143,27 +145,29 @@ Okay, here's the *slightly* annoying part. This extension needs **YOUR** OpenAI 
 4.  **COPY THIS KEY!** 📋 It starts with `sk-` and is a long string of random characters. Treat it like a password. Don't share it publicly!
 5.  **Important:** You won't be able to see this key again, so save it somewhere safe!
 
-**Alternative: OpenAI-Compatible APIs**
+### 🚀 AI Provider Presets
 
-You can also use other compatible APIs:
-- **Vercel AI Gateway**: Unified access to multiple AI providers - set base URL to `https://ai-gateway.vercel.sh/v1`
-  - Get your API key from [Vercel Dashboard](https://vercel.com/dashboard)
-  - Use models in `provider/model` format (e.g., `meta/llama-3.1-8b`, `anthropic/claude-sonnet-4.5`)
-  - Access OpenAI, Anthropic, Meta, Google, Amazon, and more through one endpoint!
-- **LM Studio**: Run models locally - set base URL to `http://localhost:1234/v1`
-- **Ollama**: Local models - typically `http://localhost:11434/v1`
-- **Any OpenAI-compatible endpoint**: Just set the custom base URL in settings
+The extension includes built-in 1-click presets for curated cloud and local providers with dynamic latest-version aliases, plus full custom endpoint support:
+
+| Provider | Icon | Endpoint / Base URL | Default Model | Key Format |
+|---|---|---|---|---|
+| **OpenAI** | 🟢 | `https://api.openai.com/v1` | `gpt-4o-mini` | `sk-...` |
+| **OpenRouter** | 🔀 | `https://openrouter.ai/api/v1` | `openrouter/auto` (Smart Auto-Router) | `sk-or-v1-...` |
+| **Groq (Ultra-Fast)** | ⚡ | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | `gsk_...` |
+| **DeepSeek** | 🐋 | `https://api.deepseek.com` | `deepseek-chat` (Auto-routes to latest) | `sk-...` |
+| **Google Gemini** | ✨ | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.0-flash` | `AIzaSy...` |
+| **Vercel AI Gateway** | ▲ | `https://ai-gateway.vercel.sh/v1` | `openai/gpt-4o-mini` | API key |
+| **Ollama (Local)** | 🦙 | `http://localhost:11434/v1` | `llama3.2` | Free / None |
+| **LM Studio (Local)** | 🧪 | `http://localhost:1234/v1` | `local-model` (Loaded model) | Free / None |
+| **Custom** | ⚙️ | *User-defined* | *User-defined* | Any compatible key |
 
 **Plugging in the Power Cord 🔌**
 
-1.  Click the **AI Text Rewriter Pro extension icon** 🧩 in your Chrome toolbar. This should open the modern Options page.
-    *   *Alternatively:* Go back to `chrome://extensions`, find the AI Text Rewriter Pro card, click "Details", then "Extension options". So many clicks!
-2.  You'll see a field labeled "**OpenAI API Key**". It's a password field, so you won't see the key as you paste (oooooh, security! ✨).
-3.  **PASTE** your copied API key into this box.
-4.  (Optional) If using a compatible API, enter the base URL in the "Custom Base URL" field.
-5.  Click "**Test API Key**" to verify your connection works. 🧪
-6.  Click the glorious "**Save Settings**" button. 💾
-7.  You *should* see a happy green message saying "Settings saved successfully!". ✅ If you see an angry red message, well... Houston, we have a problem. 🚀 (Did you paste the *whole* key?).
+1. Click the **AI Text Rewriter Pro extension icon** 🧩 or go to Extension Options.
+2. In the **AI Provider Presets** section, click on your provider card (e.g. OpenAI, Groq, Gemini, OpenRouter, DeepSeek, Ollama, or Custom).
+3. Paste your API key (if using cloud providers) or connect directly to local Ollama / LM Studio.
+4. Click "**Test API Key**" 🧪 → Click "**Save Settings**" 💾.
+5. You should see a green success message confirming your connection!
 
 **❗ IMPORTANT NOTE ABOUT YOUR KEY ❗**
 
@@ -183,8 +187,8 @@ Okay, installed? ✅ API key saved? ✅ Ready to rock? ✅ Let's rewrite!
 3.  **Highlight the Chosen Ones ✨:** Select the text you want to transform using your mouse or keyboard.
 4.  **Invoke the Menu! Right-Click Pow! 🖱️💥:** Right-click directly *on the selected text*.
 5.  **Behold! The Menu! 🤩:** Hover over the "**✨ Rewrite with AI**" option in the context menu that pops up.
-6.  **Pick Your Mode 🎭:** Choose one of the 17 available modes from the sub-menu (Humanize, Professional, Creative, Technical, etc.).
-7.  **Patience, Grasshopper... 🌱:** A sleek notification will appear showing the progress. The extension sends your text and chosen mode to the selected Gemini AI model. Response time depends on text complexity and your selected AI model. 🐹
+6.  **Pick Your Mode 🎭:** Choose one of the 15 available modes from the sub-menu (Retone, Humanize, Professional, Creative, Technical, etc.).
+7.  **Patience, Grasshopper... 🌱:** A sleek notification will appear showing the progress. The extension sends your text and chosen mode to the selected AI model. Response time depends on text complexity and your selected AI model. 🐹
 8.  **Witness the Transformation! 🪄:** If the AI gods smile upon you, the selected text will be **replaced** with the rewritten version! 🎉
 
 ---
@@ -193,70 +197,33 @@ Okay, installed? ✅ API key saved? ✅ Ready to rock? ✅ Let's rewrite!
 
 ### 🎨 Custom Modes
 Create your own rewriting styles:
-1. Go to Settings → Custom tab
-2. Enter a name and detailed prompt
+1. Open Extension Options → Custom Modes
+2. Enter a mode name and prompt instructions
 3. Save and use it like any built-in mode
 4. Export/import custom modes between devices
 
 ### 📊 Usage Analytics
-Track your writing improvements:
+Track your writing productivity:
 - Total rewrites performed
 - Characters processed
 - Most-used modes
-- Usage timeline
+- Daily usage trends
 
-### 🛡️ Smart Protection
-- **Rate Limiting**: Prevents API overuse
-- **Text Length Limits**: Configurable maximum text size
-- **Error Recovery**: Automatic retries with exponential backoff
-- **Safety Filters**: Content moderation built-in
-
-### 🔧 Advanced Settings
-- **Multiple AI Models**: Choose between Gemini 1.5 Flash, Pro, or 2.0
-- **Dark Mode**: Beautiful dark interface
-- **Keyboard Shortcuts**: Customizable hotkeys
-- **Undo History**: Keep track of recent changes
-- **Settings Backup**: Export/import all configurations
+### 🛡️ Safety & Quality
+- **Content Preservation**: Maintains original meaning and context
+- **Smart Retries**: Automatic exponential backoff for failed requests
+- **Length Validation**: Configurable limits to manage costs
+- **Input Sanitization**: Cleans whitespace and unwanted formatting
 
 ---
 
-## 🚨 Enhanced Error Handling & User Notifications
+## 👥 Perfect For
 
-Version 2.1.1 introduces comprehensive error handling to keep you informed every step of the way:
-
-### 🔧 Automatic Error Detection
-- **API Key Validation**: Instant feedback on missing or invalid API keys
-- **Network Error Handling**: Clear messages for connection issues
-- **Rate Limit Detection**: Helpful notifications when API limits are reached
-- **Content Safety Filters**: Informative messages about blocked content
-
-### 📢 Smart Notification System
-- **Clickable Error Messages**: Click on API key errors to open settings directly
-- **System Notifications**: Native Chrome notifications for setup reminders
-- **Progressive Error Messages**: Context-aware help based on error type
-- **Auto-Recovery**: Intelligent retry logic for temporary issues
-
-### 🎯 Common Error Solutions
-
-| Error Type | What It Means | How to Fix |
-|------------|---------------|------------|
-| 🔑 **"No API key configured"** | Missing OpenAI API key | Click notification to open settings |
-| 🚫 **"Invalid API key format"** | Incorrect key format | Check your key starts with "sk-" or "sess-" |
-| ⚡ **"Rate limit reached"** | Too many requests | Wait a few minutes or upgrade your OpenAI plan |
-| 🌐 **"Network error"** | Connection issues | Check your internet connection or base URL |
-| 🛡️ **"Content blocked"** | Safety filters triggered | Try rephrasing your text |
-| ⏰ **"Request timeout"** | Server response delay | Try again with shorter text |
-
----
-
-## 🎯 Perfect For
-
-- **Content Creators** - Adapt tone for different audiences
-- **Business Professionals** - Polish emails and documents
-- **Students** - Improve academic writing
-- **Customer Service** - Craft appropriate responses
-- **Social Media Managers** - Match brand voice
-- **Non-native Speakers** - Enhance English fluency
+- **Content Creators** - Blog posts, social media, video scripts
+- **Professionals** - Business emails, reports, documentation
+- **Students & Academics** - Essays, research papers, study notes
+- **Non-Native Speakers** - Natural phrasing and grammar correction
+- **Customer Support** - Polite, empathetic, and clear replies
 - **Marketers** - Create compelling copy
 - **Technical Writers** - Clarify complex concepts
 
@@ -264,64 +231,58 @@ Version 2.1.1 introduces comprehensive error handling to keep you informed every
 
 ## 🎭 Detailed Mode Guide (Choose Your Weapon Wisely) 🎭
 
-### Core Writing Modes
+### Core & Context Enhancement Modes
 
-*   **📝 `Humanize`:** Make text sound natural and conversational 🤖➡️🧑‍🎨
+*   **✨ `Retone`:** Context-aware refinement & polish 🪄
+    *   *Perfect for:* Intelligently understanding the context of the writing and rewriting it with elevated tone, crystalline clarity, superior vocabulary, and flawless grammar.
+
+*   **🧑 `Humanize`:** Make text sound natural and conversational 🤖➡️🧑‍🎨
     *   *Perfect for:* Robot-like content, stiff writing, overly formal text that needs a conversational flow.
 
-*   **✅ `Grammar Fix`:** Your personal proofreader 🧐
+*   **✏️ `Grammar Fix`:** Your personal proofreader 🧐
     *   *Perfect for:* Quick error correction without changing tone or meaning. Focuses purely on spelling and grammar.
 
-*   **👔 `Professional`:** Business-appropriate formal tone �
+*   **💼 `Professional`:** Business-appropriate formal tone 👔
     *   *Perfect for:* Work emails, reports, official documents, presentations, and corporate communication.
 
-*   **🙏 `Polite`:** Courteous and respectful language 
+*   **🙏 `Polite`:** Courteous and respectful language 🤝
     *   *Perfect for:* Customer service, delicate situations, requests, and when you need to sound diplomatic.
 
 ### Personality & Tone Modes
 
-*   **😊 `Casual`:** Friendly, informal conversation 
+*   **😊 `Casual`:** Friendly, informal conversation ☕
     *   *Perfect for:* Social media posts, casual emails, friendly messages, and relaxed communication.
 
-*   **💪 `Confident`:** Assertive and decisive language 
+*   **💪 `Confident`:** Assertive and decisive language 🚀
     *   *Perfect for:* Presentations, negotiations, leadership communication, and when you need to sound authoritative.
 
-*   **❤️ `Empathetic`:** Understanding and caring tone 
+*   **❤️ `Empathetic`:** Understanding and caring tone 🫂
     *   *Perfect for:* Support messages, sensitive topics, consoling someone, and emotional communication.
-
-*   **😏 `Cheeky`:** Playful and slightly sarcastic 
-    *   *Perfect for:* Social media content, casual writing, humor, and when you want to add personality.
 
 ### Content Optimization Modes
 
-*   **🎯 `Persuasive`:** Compelling and convincing language 
+*   **🎯 `Persuasive`:** Compelling and convincing language 🎯
     *   *Perfect for:* Sales copy, proposals, arguments, marketing content, and calls-to-action.
 
-*   **⚡ `Concise`:** Clear and to-the-point 
+*   **⚡ `Concise`:** Clear and to-the-point ⚡
     *   *Perfect for:* Headlines, summaries, tweets, bullet points, and when brevity matters.
 
-*   **📚 `Detailed`:** Comprehensive and thorough 
+*   **📚 `Detailed`:** Comprehensive and thorough 📖
     *   *Perfect for:* Explanations, tutorials, guides, documentation, and in-depth content.
 
-*   **🎨 `Creative`:** Engaging and imaginative 
+*   **🎨 `Creative`:** Engaging and imaginative 🎨
     *   *Perfect for:* Marketing copy, storytelling, creative writing, and content that needs flair.
 
 ### Specialized Modes
 
-*   **🔬 `Technical`:** Precise and specification-focused 
+*   **⚙️ `Technical`:** Precise and specification-focused 🔬
     *   *Perfect for:* Documentation, instructions, technical writing, and professional specifications.
 
-*   **🎓 `Beginner-Friendly`:** Simple and accessible language 
-    *   *Perfect for:* Educational content, how-to guides, explaining complex topics simply.
+*   **🎓 `Academic`:** Scholarly and structured formal style 🏛️
+    *   *Perfect for:* Academic papers, essays, literature reviews, and research summaries.
 
-*   **✍️ `Composer`:** Generate content from instructions 🧞
-    *   *Perfect for:* Creating new text from prompts. Type your instruction (e.g., "write email asking for project update"), select it, and choose Composer to generate fresh content.
-
-*   **🌍 `Translate`:** Convert to English or improve clarity 
-    *   *Perfect for:* International content, non-native English text, and improving readability.
-
-*   **📄 `Summarize`:** Extract key points concisely 
-    *   *Perfect for:* Long documents, research papers, articles, and when you need the main points.
+*   **📢 `Marketing`:** High-conversion promotional copy 📣
+    *   *Perfect for:* Product promotions, ad copy, value propositions, and landing pages.
 
 ---
 
@@ -361,7 +322,7 @@ Yeah, sometimes technology just says "NOPE". 🙅‍♂️ Here's a comprehensiv
 *   If you still get weird formatting or unexpected content (like a full email for "Professional Tone"), the AI might be ignoring instructions. We added some cleanup code, but it's not perfect. Prompt engineering is hard! 🤷‍♂️
 
 **🚦 Error: `Content blocked by API...`**
-*   The AI's safety filters might have flagged your original text or the requested rewrite (especially possible with "Cheeky"). Try rephrasing your original text or using a different mode.
+*   The AI's safety filters might have flagged your original text or the requested rewrite. Try rephrasing your original text or using a different mode.
 
 **"Too many requests"**
 - Built-in rate limiting prevents API overuse

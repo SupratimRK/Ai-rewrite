@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AI Text Rewriter",
   "version": "2.5.1",
-  "description": "AI-powered Chrome extension for text rewriting using OpenAI or OpenAI-compatible APIs. Professional writing assistant with 21+ modes, custom prompts, grammar checking, and instant text transformation.",
+  "description": "AI-powered Chrome extension for text rewriting using OpenAI or OpenAI-compatible APIs. Professional writing assistant with 15 focused modes including Retone, custom prompts, and instant text transformation.",
   "permissions": [
     "storage",
     "contextMenus",
@@ -38,6 +38,12 @@
     "128": "icons/icon128.png"
   },
   "commands": {
+    "rewrite-retone": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+R"
+      },
+      "description": "Retone text for superior context, clarity, tone & grammar (Ctrl+Shift+R)"
+    },
     "rewrite-humanize": {
       "suggested_key": {
         "default": "Ctrl+Shift+H"

@@ -46,16 +46,24 @@
             --hover-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
+        html {
+            width: 100%;
+            min-width: 640px;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: var(--font-family);
             background-color: var(--background-color);
             color: var(--text-color);
             margin: 0;
             padding: 0;
-            min-height: 100vh;
+            width: 100%;
+            min-width: 640px;
             font-size: 14px;
             line-height: 1.5;
             transition: all 0.2s ease;
+            box-sizing: border-box;
         }
 
         .container {
@@ -63,11 +71,13 @@
             border: 1px solid var(--card-border);
             border-radius: var(--radius-lg);
             box-shadow: var(--card-shadow);
-            max-width: 600px;
-            width: 70vw;
-            margin: 24px auto;
+            max-width: 680px;
+            width: 100%;
+            min-width: 620px;
+            margin: 0 auto;
             overflow: hidden;
             transition: box-shadow 0.2s ease;
+            box-sizing: border-box;
         }
 
         .container:hover {
@@ -77,15 +87,15 @@
         .header {
             background-color: var(--primary-color);
             color: white;
-            padding: 32px 40px;
+            padding: 22px 28px;
             text-align: center;
             position: relative;
         }
 
         .header h1 {
-            margin: 0 0 8px 0;
+            margin: 0 0 4px 0;
             font-weight: 700;
-            font-size: 28px;
+            font-size: 24px;
             letter-spacing: -0.5px;
             position: relative;
             z-index: 1;
@@ -93,7 +103,7 @@
 
         .header .subtitle {
             margin: 0;
-            font-size: 14px;
+            font-size: 13px;
             opacity: 0.9;
             font-weight: 500;
             position: relative;
@@ -101,12 +111,13 @@
         }
 
         .main-content {
-            padding: 40px;
+            padding: 24px 28px;
+            box-sizing: border-box;
         }
 
         .tabs {
             display: flex;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             background-color: var(--primary-light);
             border-radius: var(--radius-md);
             padding: 4px;
@@ -491,6 +502,51 @@
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .provider-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .provider-card {
+            background-color: var(--primary-light);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .provider-card:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(99, 102, 241, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .provider-card.active {
+            border-color: var(--primary-color);
+            background-color: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+
+        .provider-icon {
+            font-size: 20px;
+        }
+
+        .provider-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-color);
         }
 
         .mode-list {
@@ -915,12 +971,16 @@
 
             <!-- General Settings Tab -->
             <div id="general" class="tab-content active">
-                <div class="section-title">API Configuration</div>
+                <div class="section-title">AI Provider Presets</div>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 14px;">Select a provider preset to auto-configure endpoints and models, or choose Custom:</p>
+                <div class="provider-grid" id="providerPresets"></div>
+
+                <div class="section-title" style="margin-top: 28px;">API Configuration</div>
                 <div class="form-group">
-                    <label for="apiKey">🔑 OpenAI API Key *</label>
+                    <label for="apiKey" id="apiKeyLabel">🔑 OpenAI API Key *</label>
                     <input type="password" id="apiKey" name="apiKey"
                         placeholder="Paste your OpenAI API Key here (sk-...)">
-                    <div class="help-text">
+                    <div class="help-text" id="apiKeyHelp">
                         Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank"
                             rel="noopener noreferrer">OpenAI Platform</a>
                     </div>
@@ -931,21 +991,23 @@
                     <input type="text" id="baseUrl" name="baseUrl"
                         placeholder="https://api.openai.com/v1 (leave empty for default)">
                     <div class="help-text">
-                        For OpenAI-compatible APIs (like LM Studio, Ollama, etc.), enter the base URL. Leave empty to
-                        use default OpenAI endpoint.
+                        For OpenAI-compatible APIs (like OpenRouter, Groq, Gemini, Ollama, etc.), enter the base URL.
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="selectedModel">🧠 AI Model</label>
-                        <input type="text" id="selectedModel" list="modelSuggestions" placeholder="amazon/nova-micro">
+                        <input type="text" id="selectedModel" list="modelSuggestions" placeholder="gpt-4o-mini">
                         <datalist id="modelSuggestions">
-                            <option value="amazon/nova-micro">amazon nova (Recommended)</option>
-                            <option value="openai/gpt-5-nano">GPT-5 Nano (More Capable)</option>
-                            <option value="mistral/mistral-nemo">Mistral Nemo (Affordable)</option>
-                            <option value="meta/llama-3.1-8b">LLAMA 3.1 8B (Affordable)</option>
-                            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Powerful)</option>
+                            <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cost-Effective - Recommended)</option>
+                            <option value="gpt-4o">GPT-4o (Latest Flagship)</option>
+                            <option value="chatgpt-4o-latest">ChatGPT-4o Latest (Dynamic Pointer)</option>
+                            <option value="o3-mini">o3-mini (Advanced Reasoning)</option>
+                            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Google Ultra-Fast)</option>
+                            <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Groq)</option>
+                            <option value="deepseek-chat">DeepSeek Chat (Latest)</option>
+                            <option value="openrouter/auto">OpenRouter Auto (Smart Router)</option>
                         </datalist>
                         <div class="help-text">
                             Enter any model name supported by your API endpoint. Type or select from suggestions.
@@ -1001,6 +1063,16 @@
 
                 <!-- Built-in Modes -->
                 <div class="mode-list">
+                    <div class="mode-item">
+                        <div class="mode-checkbox">
+                            <input type="checkbox" id="mode-retone" checked>
+                            <div>
+                                <div class="mode-label">✨ Retone (Context & Polish)</div>
+                                <div class="mode-description">Intelligently adapt tone, enhance clarity, grammar, and vocabulary based on context</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mode-item">
                         <div class="mode-checkbox">
                             <input type="checkbox" id="mode-humanize" checked>
@@ -1075,7 +1147,7 @@
                         <div class="mode-checkbox">
                             <input type="checkbox" id="mode-persuasive" checked>
                             <div>
-                                <div class="mode-label">� Persuasive & Compelling</div>
+                                <div class="mode-label">🎯 Persuasive & Compelling</div>
                                 <div class="mode-description">Convincing and motivating language</div>
                             </div>
                         </div>
@@ -1135,78 +1207,8 @@
                         <div class="mode-checkbox">
                             <input type="checkbox" id="mode-marketing" checked>
                             <div>
-                                <div class="mode-label">� Marketing & Sales</div>
+                                <div class="mode-label">📢 Marketing & Sales</div>
                                 <div class="mode-description">Promotional and engaging copy</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mode-item">
-                        <div class="mode-checkbox">
-                            <input type="checkbox" id="mode-cheeky" checked>
-                            <div>
-                                <div class="mode-label">😏 Cheeky & Playful</div>
-                                <div class="mode-description">Witty and slightly sarcastic</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mode-item">
-                        <div class="mode-checkbox">
-                            <input type="checkbox" id="mode-newby" checked>
-                            <div>
-                                <div class="mode-label">🌱 Beginner-Friendly</div>
-                                <div class="mode-description">Simple language for newcomers</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mode-item">
-                        <div class="mode-checkbox">
-                            <input type="checkbox" id="mode-composer" checked>
-                            <div>
-                                <div class="mode-label">✨ Compose from Instruction</div>
-                                <div class="mode-description">Generate new content from prompts</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mode-item">
-                        <div class="mode-checkbox">
-                            <input type="checkbox" id="mode-translate" checked>
-                            <div>
-                                <div class="mode-label">🌍 Translate to English</div>
-                                <div class="mode-description">Translate text from other languages to English</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mode-item">
-                        <div class="mode-checkbox">
-                            <input type="checkbox" id="mode-summarize" checked>
-                            <div>
-                                <div class="mode-label">📋 Summarize Key Points</div>
-                                <div class="mode-description">Extract and condense main ideas</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mode-item">
-                        <div class="mode-checkbox">
-                            <input type="checkbox" id="mode-expand" checked>
-                            <div>
-                                <div class="mode-label">📝 Expand & Elaborate</div>
-                                <div class="mode-description">Add more detail and explanation</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mode-item">
-                        <div class="mode-checkbox">
-                            <input type="checkbox" id="mode-simplify" checked>
-                            <div>
-                                <div class="mode-label">🔤 Simplify & Clarify</div>
-                                <div class="mode-description">Make text easier to understand</div>
                             </div>
                         </div>
                     </div>
@@ -1343,6 +1345,10 @@
                 <div class="help-section">
                     <h3>⌨️ Keyboard Shortcuts</h3>
                     <div class="shortcut-item">
+                        <span>Retone Mode</span>
+                        <span class="shortcut-key">Ctrl+Shift+R</span>
+                    </div>
+                    <div class="shortcut-item">
                         <span>Humanize Mode</span>
                         <span class="shortcut-key">Ctrl+Shift+H</span>
                     </div>
@@ -1382,6 +1388,7 @@
                     <div class="help-section">
                         <h3>🎭 Built-in Modes</h3>
                         <ul class="feature-list">
+                            <li><strong>Retone:</strong> Intelligently adapt tone, enhance clarity, grammar, and vocabulary based on context</li>
                             <li><strong>Humanize:</strong> Make text sound more natural and conversational</li>
                             <li><strong>Fix Grammar:</strong> Correct grammatical errors and typos</li>
                             <li><strong>Professional:</strong> Formal business communication style</li>
@@ -1396,13 +1403,6 @@
                             <li><strong>Technical:</strong> Accurate technical terminology</li>
                             <li><strong>Academic:</strong> Formal academic writing style</li>
                             <li><strong>Marketing:</strong> Promotional and engaging copy</li>
-                            <li><strong>Cheeky:</strong> Witty and slightly sarcastic</li>
-                            <li><strong>Beginner-Friendly:</strong> Simple language for newcomers</li>
-                            <li><strong>Compose:</strong> Generate new content from prompts</li>
-                            <li><strong>Translate:</strong> Translate text from other languages to English</li>
-                            <li><strong>Summarize:</strong> Extract and condense main ideas</li>
-                            <li><strong>Expand:</strong> Add more detail and explanation</li>
-                            <li><strong>Simplify:</strong> Make text easier to understand</li>
                         </ul>
                     </div>
                 </div>

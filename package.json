@@ -1,7 +1,7 @@
 {
   "name": "ai-text-rewriter-pro",
   "version": "2.1.1",
-  "description": "Advanced AI-powered Chrome extension for text rewriting using Google Gemini AI. Transform your writing with 17+ built-in modes, custom prompts, and professional writing assistance.",
+  "description": "Advanced AI-powered Chrome extension for text rewriting. Transform your writing with 15 focused built-in modes including Retone, custom prompts, and professional writing assistance.",
   "main": "background.js",
   "scripts": {
     "build": "echo 'Chrome extension - no build step required'",

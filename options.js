@@ -2,6 +2,7 @@
 
 // Built-in modes configuration (updated to match background.js)
 const BUILT_IN_MODES = {
+    retone: "Retone (Context & Polish)",
     humanize: "Humanize (Make Natural)",
     grammar: "Fix Grammar & Spelling",
     professional: "Professional Tone",
@@ -15,14 +16,111 @@ const BUILT_IN_MODES = {
     creative: "Creative & Engaging",
     technical: "Technical & Precise",
     academic: "Academic & Scholarly",
-    marketing: "Marketing & Sales",
-    cheeky: "Cheeky & Playful",
-    newby: "Beginner-Friendly",
-    composer: "Compose from Instruction",
-    translate: "Translate to English",
-    summarize: "Summarize Key Points",
-    expand: "Expand & Elaborate",
-    simplify: "Simplify & Clarify"
+    marketing: "Marketing & Sales"
+};
+
+// Popular AI Provider Presets
+// Popular AI Provider Presets (Curated with Latest & Dynamic Pointer Endpoints)
+const POPULAR_PROVIDERS = {
+    openai: {
+        name: "OpenAI",
+        icon: "🟢",
+        baseUrl: "",
+        defaultModel: "gpt-4o-mini",
+        suggestedModels: ["gpt-4o-mini", "gpt-4o", "chatgpt-4o-latest", "o3-mini"],
+        apiKeyPlaceholder: "Paste your OpenAI API Key (sk-...)",
+        apiKeyLabel: "🔑 OpenAI API Key *",
+        apiKeyHelpUrl: "https://platform.openai.com/api-keys",
+        apiKeyHelpText: "Get your API key from OpenAI Platform"
+    },
+    openrouter: {
+        name: "OpenRouter",
+        icon: "🔀",
+        baseUrl: "https://openrouter.ai/api/v1",
+        defaultModel: "openrouter/auto",
+        suggestedModels: ["openrouter/auto", "meta-llama/llama-3.3-70b-instruct", "anthropic/claude-3.7-sonnet", "deepseek/deepseek-chat", "google/gemini-2.0-flash-001"],
+        apiKeyPlaceholder: "Paste your OpenRouter API Key (sk-or-v1-...)",
+        apiKeyLabel: "🔑 OpenRouter API Key *",
+        apiKeyHelpUrl: "https://openrouter.ai/keys",
+        apiKeyHelpText: "Get your API key from OpenRouter (auto-routes to latest best model)"
+    },
+    groq: {
+        name: "Groq (Ultra-Fast)",
+        icon: "⚡",
+        baseUrl: "https://api.groq.com/openai/v1",
+        defaultModel: "llama-3.3-70b-versatile",
+        suggestedModels: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "deepseek-r1-distill-llama-70b", "qwen-2.5-32b"],
+        apiKeyPlaceholder: "Paste your Groq API Key (gsk_...)",
+        apiKeyLabel: "🔑 Groq API Key *",
+        apiKeyHelpUrl: "https://console.groq.com/keys",
+        apiKeyHelpText: "Get your ultra-fast API key from Groq Console"
+    },
+    deepseek: {
+        name: "DeepSeek",
+        icon: "🐋",
+        baseUrl: "https://api.deepseek.com",
+        defaultModel: "deepseek-chat",
+        suggestedModels: ["deepseek-chat", "deepseek-reasoner"],
+        apiKeyPlaceholder: "Paste your DeepSeek API Key (sk-...)",
+        apiKeyLabel: "🔑 DeepSeek API Key *",
+        apiKeyHelpUrl: "https://platform.deepseek.com/api_keys",
+        apiKeyHelpText: "Get your API key from DeepSeek (deepseek-chat auto-routes to latest)"
+    },
+    gemini: {
+        name: "Google Gemini",
+        icon: "✨",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
+        defaultModel: "gemini-2.0-flash",
+        suggestedModels: ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-pro"],
+        apiKeyPlaceholder: "Paste your Gemini API Key (AIzaSy...)",
+        apiKeyLabel: "🔑 Google Gemini API Key *",
+        apiKeyHelpUrl: "https://aistudio.google.com/app/apikey",
+        apiKeyHelpText: "Get your free API key from Google AI Studio"
+    },
+    vercel: {
+        name: "Vercel Gateway",
+        icon: "▲",
+        baseUrl: "https://ai-gateway.vercel.sh/v1",
+        defaultModel: "openai/gpt-4o-mini",
+        suggestedModels: ["openai/gpt-4o-mini", "amazon/nova-micro", "anthropic/claude-3.5-sonnet", "meta/llama-3.3-70b"],
+        apiKeyPlaceholder: "Paste your Vercel AI Gateway Key",
+        apiKeyLabel: "🔑 Vercel AI Gateway Key *",
+        apiKeyHelpUrl: "https://vercel.com/dashboard",
+        apiKeyHelpText: "Get your key from Vercel Dashboard"
+    },
+    ollama: {
+        name: "Ollama (Local)",
+        icon: "🦙",
+        baseUrl: "http://localhost:11434/v1",
+        defaultModel: "llama3.2",
+        suggestedModels: ["llama3.2", "qwen2.5", "phi4", "deepseek-r1"],
+        apiKeyPlaceholder: "Not required (local server)",
+        apiKeyLabel: "🔑 API Key (Optional for Local)",
+        apiKeyHelpUrl: "https://ollama.com",
+        apiKeyHelpText: "Run local models for free with Ollama"
+    },
+    lmstudio: {
+        name: "LM Studio",
+        icon: "🧪",
+        baseUrl: "http://localhost:1234/v1",
+        defaultModel: "local-model",
+        suggestedModels: ["local-model"],
+        apiKeyPlaceholder: "Not required (local server)",
+        apiKeyLabel: "🔑 API Key (Optional for Local)",
+        apiKeyHelpUrl: "https://lmstudio.ai",
+        apiKeyHelpText: "Routes to whatever model is loaded in LM Studio"
+    },
+    custom: {
+        name: "Custom",
+        icon: "⚙️",
+        baseUrl: "custom",
+        defaultModel: "",
+        suggestedModels: [],
+        apiKeyPlaceholder: "Paste your API key (if required)",
+        apiKeyLabel: "🔑 API Key",
+        apiKeyHelpUrl: "",
+        apiKeyHelpText: "Enter your custom endpoint Base URL and model name below"
+    }
 };
 
 // Global state
@@ -54,6 +152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadAllSettings();
     setupEventListeners();
     await loadUsageStats();
+    renderProviderPresets();
     renderModesList();
     renderCustomModes();
 });
@@ -121,12 +220,23 @@ async function loadAllSettings() {
             'enableKeyboardShortcuts',
             'darkMode'
         ], (result) => {
+            const validBuiltInKeys = Object.keys(BUILT_IN_MODES);
+            let enabledModes = result.enabledModes;
+            if (Array.isArray(enabledModes)) {
+                enabledModes = enabledModes.filter(k => validBuiltInKeys.includes(k));
+                if (!enabledModes.includes('retone')) {
+                    enabledModes.unshift('retone');
+                }
+            } else {
+                enabledModes = validBuiltInKeys;
+            }
+
             currentSettings = {
                 openaiApiKey: result.openaiApiKey || '',
                 openaiBaseUrl: result.openaiBaseUrl || '',
-                selectedModel: result.selectedModel || 'amazon/nova-micro',
+                selectedModel: result.selectedModel || 'gpt-4o-mini',
                 customModes: result.customModes || {},
-                enabledModes: result.enabledModes || Object.keys(BUILT_IN_MODES),
+                enabledModes: enabledModes,
                 maxTextLength: result.maxTextLength || 8000,
                 enableUndo: result.enableUndo !== false,
                 enablePreviewMode: result.enablePreviewMode !== false,
@@ -143,8 +253,9 @@ async function loadAllSettings() {
 
 function updateUIFromSettings() {
     // General tab
+    const baseUrl = currentSettings.openaiBaseUrl || '';
     document.getElementById('apiKey').value = currentSettings.openaiApiKey;
-    document.getElementById('baseUrl').value = currentSettings.openaiBaseUrl || '';
+    document.getElementById('baseUrl').value = baseUrl;
     document.getElementById('selectedModel').value = currentSettings.selectedModel;
     document.getElementById('maxTextLength').value = currentSettings.maxTextLength;
     document.getElementById('enableUndo').checked = currentSettings.enableUndo;
@@ -153,6 +264,22 @@ function updateUIFromSettings() {
     document.getElementById('enableKeyboardShortcuts').checked = currentSettings.enableKeyboardShortcuts;
     document.getElementById('darkMode').checked = currentSettings.darkMode;
 
+    // Detect and configure provider UI
+    const detectedKey = detectProviderFromUrl(baseUrl);
+    const provider = POPULAR_PROVIDERS[detectedKey] || POPULAR_PROVIDERS.openai;
+    
+    const apiKeyLabel = document.getElementById('apiKeyLabel');
+    const apiKeyInput = document.getElementById('apiKey');
+    const apiKeyHelp = document.getElementById('apiKeyHelp');
+    
+    if (apiKeyLabel) apiKeyLabel.textContent = provider.apiKeyLabel;
+    if (apiKeyInput) apiKeyInput.placeholder = provider.apiKeyPlaceholder;
+    if (apiKeyHelp) {
+        apiKeyHelp.innerHTML = `<a href="${provider.apiKeyHelpUrl}" target="_blank" rel="noopener noreferrer">${provider.apiKeyHelpText}</a>`;
+    }
+    
+    updateModelSuggestions(provider.suggestedModels);
+
     // Apply theme
     if (currentSettings.darkMode) {
         document.body.setAttribute('data-theme', 'dark');
@@ -160,20 +287,97 @@ function updateUIFromSettings() {
     }
 }
 
+function detectProviderFromUrl(url) {
+    const cleanUrl = (url || '').trim().replace(/\/$/, '');
+    if (!cleanUrl) return 'openai';
+    for (const [key, provider] of Object.entries(POPULAR_PROVIDERS)) {
+        if (key === 'custom') continue;
+        const pUrl = provider.baseUrl.trim().replace(/\/$/, '');
+        if (pUrl && cleanUrl.startsWith(pUrl)) {
+            return key;
+        }
+    }
+    return 'custom';
+}
+
+function renderProviderPresets() {
+    const container = document.getElementById('providerPresets');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const currentBaseUrl = (currentSettings.openaiBaseUrl || '').trim().replace(/\/$/, '');
+    const activeKey = detectProviderFromUrl(currentBaseUrl);
+
+    Object.entries(POPULAR_PROVIDERS).forEach(([key, provider]) => {
+        const card = document.createElement('div');
+        card.className = `provider-card ${key === activeKey ? 'active' : ''}`;
+        card.dataset.provider = key;
+
+        card.innerHTML = `
+            <div class="provider-icon">${provider.icon}</div>
+            <div class="provider-name">${provider.name}</div>
+        `;
+
+        card.addEventListener('click', () => selectProvider(key));
+        container.appendChild(card);
+    });
+}
+
+function selectProvider(key) {
+    const provider = POPULAR_PROVIDERS[key];
+    if (!provider) return;
+
+    // Update active card
+    document.querySelectorAll('.provider-card').forEach(c => {
+        c.classList.toggle('active', c.dataset.provider === key);
+    });
+
+    // Update inputs
+    const baseUrlInput = document.getElementById('baseUrl');
+    const selectedModelInput = document.getElementById('selectedModel');
+    const apiKeyInput = document.getElementById('apiKey');
+    const apiKeyLabel = document.getElementById('apiKeyLabel');
+    const apiKeyHelp = document.getElementById('apiKeyHelp');
+
+    if (key === 'custom') {
+        if (apiKeyLabel) apiKeyLabel.textContent = "🔑 API Key (Custom Provider)";
+        if (apiKeyInput) apiKeyInput.placeholder = "Enter your API key (if required)";
+        if (apiKeyHelp) {
+            apiKeyHelp.innerHTML = `Enter your custom endpoint Base URL (e.g. <code>https://api.your-provider.com/v1</code>) and model below.`;
+        }
+        baseUrlInput.focus();
+        showStatus('⚙️ Custom endpoint selected. Enter your Base URL and model below.', 'success');
+    } else {
+        baseUrlInput.value = provider.baseUrl;
+        selectedModelInput.value = provider.defaultModel;
+
+        if (apiKeyLabel) apiKeyLabel.textContent = provider.apiKeyLabel;
+        if (apiKeyInput) apiKeyInput.placeholder = provider.apiKeyPlaceholder;
+        if (apiKeyHelp) {
+            apiKeyHelp.innerHTML = `<a href="${provider.apiKeyHelpUrl}" target="_blank" rel="noopener noreferrer">${provider.apiKeyHelpText}</a>`;
+        }
+
+        updateModelSuggestions(provider.suggestedModels);
+        showStatus(`⚡ Configured for ${provider.name}! Click 'Save Settings' to apply.`, 'success');
+    }
+}
+
+function updateModelSuggestions(models) {
+    const datalist = document.getElementById('modelSuggestions');
+    if (!datalist) return;
+    datalist.innerHTML = '';
+    models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        datalist.appendChild(option);
+    });
+}
+
 function setupEventListeners() {
     // General tab
     document.getElementById('saveGeneral').addEventListener('click', saveGeneralSettings);
     document.getElementById('testConnection').addEventListener('click', testApiConnection);
-    
-    // Vercel AI Gateway quick setup button
-    const setVercelBtn = document.getElementById('setVercelUrl');
-    if (setVercelBtn) {
-        setVercelBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('baseUrl').value = 'https://ai-gateway.vercel.sh/v1';
-            showStatus('✅ Vercel AI Gateway URL set! Remember to save your settings.', 'success');
-        });
-    }
 
     // Modes tab
     document.getElementById('saveModes').addEventListener('click', saveModeSettings);
@@ -219,14 +423,15 @@ function setupEventListeners() {
 async function saveGeneralSettings() {
     const apiKey = document.getElementById('apiKey').value.trim();
     const baseUrl = document.getElementById('baseUrl').value.trim();
+    const isLocal = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
     
-    if (!apiKey) {
+    if (!apiKey && !isLocal) {
         showStatus('❌ API Key cannot be empty', 'error');
         return;
     }
 
-    // Validate API key format for OpenAI (keys typically start with 'sk-' or 'sess-')
-    if (!apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
+    // Validate API key format for OpenAI only
+    if (!baseUrl && apiKey && !apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
         showStatus('⚠️ Warning: OpenAI API keys typically start with "sk-". Double-check your key.', 'warning');
     }
 
@@ -256,14 +461,15 @@ async function saveGeneralSettings() {
 async function testApiConnection() {
     const apiKey = document.getElementById('apiKey').value.trim();
     const baseUrl = document.getElementById('baseUrl').value.trim();
+    const isLocal = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
     
-    if (!apiKey) {
+    if (!apiKey && !isLocal) {
         showStatus('❌ Please enter an API key first', 'error');
         return;
     }
 
-    // Validate API key format before testing
-    if (!apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
+    // Validate API key format before testing for OpenAI
+    if (!baseUrl && apiKey && !apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
         showStatus('⚠️ Warning: OpenAI API keys typically start with "sk-". Testing anyway...', 'warning');
     }
 
@@ -279,12 +485,18 @@ async function testApiConnection() {
             ? `${baseUrl.replace(/\/$/, '')}/chat/completions`
             : 'https://api.openai.com/v1/chat/completions';
         
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (apiKey) {
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        } else if (isLocal) {
+            headers['Authorization'] = 'Bearer local';
+        }
+
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
+            headers: headers,
             body: JSON.stringify({
                 model: model,
                 messages: [
@@ -304,7 +516,7 @@ async function testApiConnection() {
             if (response.status === 401 || response.status === 403) {
                 errorMessage = 'Invalid or expired API key';
             } else if (response.status === 400) {
-                errorMessage = 'Invalid request format';
+                errorMessage = 'Invalid request format or model name';
             } else if (response.status === 429) {
                 errorMessage = 'Rate limit exceeded';
             } else if (response.status >= 500) {
@@ -319,7 +531,9 @@ async function testApiConnection() {
         let errorMessage = error.message;
         
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            errorMessage = 'Network error - check your internet connection';
+            errorMessage = isLocal 
+                ? 'Could not connect to local server - is Ollama/LM Studio running?' 
+                : 'Network error - check your internet connection or base URL';
         } else if (error.message.includes('API key')) {
             errorMessage = 'Invalid API key - please check your key';
         }
@@ -330,6 +544,7 @@ async function testApiConnection() {
         testButton.textContent = '🧪 Test API Key';
     }
 }
+
 
 // === MODES MANAGEMENT ===
 function renderModesList() {
