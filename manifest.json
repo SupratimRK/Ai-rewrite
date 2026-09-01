@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Text Rewriter",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "AI-powered Chrome extension for text rewriting using OpenAI or OpenAI-compatible APIs. Professional writing assistant with 15 focused modes including Retone, custom prompts, and instant text transformation.",
   "permissions": [
     "storage",
@@ -63,10 +63,7 @@
       "description": "Fix grammar and spelling in selected text (Ctrl+Shift+G)"
     },
     "undo-rewrite": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+Z"
-      },
-      "description": "Undo last rewrite (Ctrl+Shift+Z)"
+      "description": "Undo last rewrite (Configurable in chrome://extensions/shortcuts)"
     }
   },
   "content_security_policy": {

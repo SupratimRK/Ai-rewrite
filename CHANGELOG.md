@@ -5,6 +5,24 @@ All notable changes to the AI Text Rewriter Pro extension will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.2] - 2026-09-01
+
+### Added
+- Automatic browser/system theme detection (`prefers-color-scheme`) with dynamic synchronization
+- Zero-flash initial theme rendering via CSS `@media (prefers-color-scheme: dark)` and light override support
+
+### Changed
+- Updated all AI provider presets with curated fast, non-pro models & dynamic evergreen pointers:
+  - **OpenAI**: `chat-latest` (default), `gpt-5.6-luna`, `gpt-4o-mini`, `o4-mini`
+  - **Google Gemini**: `gemini-flash-lite-latest` (default), `gemini-flash-latest`, `gemini-3.7-flash`, `gemini-3.5-flash-lite`
+  - **Groq**: Streamlined provider name (removed "(Ultra-Fast)") and added fast models (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, `openai/gpt-oss-20b`, `groq/compound-mini`)
+  - **DeepSeek**: `deepseek-v4-flash` (default), `deepseek-v4-flash-vision-exp`, `deepseek-v4-pro`
+  - **OpenRouter**: `openrouter/auto` (default), `google/gemini-3.7-flash`, `deepseek/deepseek-v4-flash`, `anthropic/claude-3.5-haiku`
+  - **Vercel AI Gateway**: `openai/chat-latest` (default), `openai/gpt-4o-mini`, `google/gemini-3.7-flash`, `anthropic/claude-3-5-haiku`
+  - **Ollama**: `llama3.2` (default), `qwen2.5:7b`, `phi4-mini`, `mistral`, `deepseek-r1:8b`
+
+---
+
 ## [2.5.1] - 2026-02-08
 
 ### Fixed

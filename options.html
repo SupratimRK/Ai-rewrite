@@ -30,6 +30,24 @@
             --radius-lg: 12px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --background-color: #111827;
+                --text-color: #f9fafb;
+                --text-secondary: #9ca3af;
+                --primary-color: #60a5fa;
+                --primary-hover-color: #3b82f6;
+                --primary-light: #1e3a8a;
+                --input-border-color: #374151;
+                --input-focus-border-color: #60a5fa;
+                --input-background-color: #1f2937;
+                --card-background: #1f2937;
+                --card-border: #374151;
+                --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+                --hover-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            }
+        }
+
         [data-theme="dark"] {
             --background-color: #111827;
             --text-color: #f9fafb;
@@ -44,6 +62,22 @@
             --card-border: #374151;
             --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
             --hover-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] {
+            --background-color: #fafbfc;
+            --text-color: #1f2937;
+            --text-secondary: #6b7280;
+            --primary-color: #3b82f6;
+            --primary-hover-color: #2563eb;
+            --primary-light: #eff6ff;
+            --input-border-color: #e5e7eb;
+            --input-focus-border-color: #3b82f6;
+            --input-background-color: #ffffff;
+            --card-background: #ffffff;
+            --card-border: #f3f4f6;
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --hover-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
         html {
@@ -998,16 +1032,18 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="selectedModel">🧠 AI Model</label>
-                        <input type="text" id="selectedModel" list="modelSuggestions" placeholder="gpt-4o-mini">
+                        <input type="text" id="selectedModel" list="modelSuggestions" placeholder="chat-latest">
                         <datalist id="modelSuggestions">
-                            <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cost-Effective - Recommended)</option>
-                            <option value="gpt-4o">GPT-4o (Latest Flagship)</option>
-                            <option value="chatgpt-4o-latest">ChatGPT-4o Latest (Dynamic Pointer)</option>
-                            <option value="o3-mini">o3-mini (Advanced Reasoning)</option>
-                            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Google Ultra-Fast)</option>
-                            <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Groq)</option>
-                            <option value="deepseek-chat">DeepSeek Chat (Latest)</option>
-                            <option value="openrouter/auto">OpenRouter Auto (Smart Router)</option>
+                            <option value="chat-latest">ChatGPT Latest (Dynamic Instant Pointer)</option>
+                            <option value="openrouter/auto">OpenRouter Auto (Dynamic Smart Router)</option>
+                            <option value="gemini-flash-lite-latest">Gemini Flash-Lite Latest (Dynamic Google Pointer)</option>
+                            <option value="gemini-3.7-flash">Gemini 3.7 Flash (Google Flash)</option>
+                            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Google Ultra-Lightweight)</option>
+                            <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Groq Fast)</option>
+                            <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant (Groq High-Speed)</option>
+                            <option value="deepseek-v4-flash">DeepSeek V4 Flash (Fast & Efficient)</option>
+                            <option value="gpt-4o-mini">GPT-4o Mini (Cost-Effective)</option>
+                            <option value="gpt-5.6-luna">GPT-5.6 Luna (Fast & Cost-Sensitive)</option>
                         </datalist>
                         <div class="help-text">
                             Enter any model name supported by your API endpoint. Type or select from suggestions.
@@ -1362,7 +1398,7 @@
                     </div>
                     <div class="shortcut-item">
                         <span>Undo Last Rewrite</span>
-                        <span class="shortcut-key">Ctrl+Shift+Z</span>
+                        <span class="shortcut-key">Custom (chrome://extensions/shortcuts)</span>
                     </div>
                 </div>
 
@@ -1476,7 +1512,7 @@
                 <div class="footer-divider"></div>
 
                 <div class="footer-copyright">
-                    Made with <span class="footer-hearts">💙</span> by <strong>Supratim</strong> • Version 2.5.1 • ©
+                    Made with <span class="footer-hearts">💙</span> by <strong>Supratim</strong> • Version 2.5.2 • ©
                     2026
                 </div>
             </div>

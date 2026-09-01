@@ -19,15 +19,14 @@ const BUILT_IN_MODES = {
     marketing: "Marketing & Sales"
 };
 
-// Popular AI Provider Presets
 // Popular AI Provider Presets (Curated with Latest & Dynamic Pointer Endpoints)
 const POPULAR_PROVIDERS = {
     openai: {
         name: "OpenAI",
         icon: "🟢",
         baseUrl: "",
-        defaultModel: "gpt-4o-mini",
-        suggestedModels: ["gpt-4o-mini", "gpt-4o", "chatgpt-4o-latest", "o3-mini"],
+        defaultModel: "chat-latest",
+        suggestedModels: ["chat-latest", "gpt-5.6-luna", "gpt-4o-mini", "o4-mini"],
         apiKeyPlaceholder: "Paste your OpenAI API Key (sk-...)",
         apiKeyLabel: "🔑 OpenAI API Key *",
         apiKeyHelpUrl: "https://platform.openai.com/api-keys",
@@ -38,40 +37,53 @@ const POPULAR_PROVIDERS = {
         icon: "🔀",
         baseUrl: "https://openrouter.ai/api/v1",
         defaultModel: "openrouter/auto",
-        suggestedModels: ["openrouter/auto", "meta-llama/llama-3.3-70b-instruct", "anthropic/claude-3.7-sonnet", "deepseek/deepseek-chat", "google/gemini-2.0-flash-001"],
+        suggestedModels: [
+            "openrouter/auto",
+            "google/gemini-3.7-flash",
+            "deepseek/deepseek-v4-flash",
+            "anthropic/claude-3.5-haiku",
+            "meta-llama/llama-3.3-70b-instruct",
+            "google/gemini-3.5-flash-lite"
+        ],
         apiKeyPlaceholder: "Paste your OpenRouter API Key (sk-or-v1-...)",
         apiKeyLabel: "🔑 OpenRouter API Key *",
         apiKeyHelpUrl: "https://openrouter.ai/keys",
         apiKeyHelpText: "Get your API key from OpenRouter (auto-routes to latest best model)"
     },
     groq: {
-        name: "Groq (Ultra-Fast)",
+        name: "Groq",
         icon: "⚡",
         baseUrl: "https://api.groq.com/openai/v1",
         defaultModel: "llama-3.3-70b-versatile",
-        suggestedModels: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "deepseek-r1-distill-llama-70b", "qwen-2.5-32b"],
+        suggestedModels: [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "openai/gpt-oss-20b",
+            "groq/compound-mini",
+            "qwen/qwen3.6-27b"
+        ],
         apiKeyPlaceholder: "Paste your Groq API Key (gsk_...)",
         apiKeyLabel: "🔑 Groq API Key *",
         apiKeyHelpUrl: "https://console.groq.com/keys",
-        apiKeyHelpText: "Get your ultra-fast API key from Groq Console"
+        apiKeyHelpText: "Get your API key from Groq Console"
     },
     deepseek: {
         name: "DeepSeek",
         icon: "🐋",
         baseUrl: "https://api.deepseek.com",
-        defaultModel: "deepseek-chat",
-        suggestedModels: ["deepseek-chat", "deepseek-reasoner"],
+        defaultModel: "deepseek-v4-flash",
+        suggestedModels: ["deepseek-v4-flash", "deepseek-v4-flash-vision-exp", "deepseek-v4-pro"],
         apiKeyPlaceholder: "Paste your DeepSeek API Key (sk-...)",
         apiKeyLabel: "🔑 DeepSeek API Key *",
         apiKeyHelpUrl: "https://platform.deepseek.com/api_keys",
-        apiKeyHelpText: "Get your API key from DeepSeek (deepseek-chat auto-routes to latest)"
+        apiKeyHelpText: "Get your API key from DeepSeek Platform"
     },
     gemini: {
         name: "Google Gemini",
         icon: "✨",
         baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
-        defaultModel: "gemini-2.0-flash",
-        suggestedModels: ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-pro"],
+        defaultModel: "gemini-flash-lite-latest",
+        suggestedModels: ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-3.7-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"],
         apiKeyPlaceholder: "Paste your Gemini API Key (AIzaSy...)",
         apiKeyLabel: "🔑 Google Gemini API Key *",
         apiKeyHelpUrl: "https://aistudio.google.com/app/apikey",
@@ -81,8 +93,15 @@ const POPULAR_PROVIDERS = {
         name: "Vercel Gateway",
         icon: "▲",
         baseUrl: "https://ai-gateway.vercel.sh/v1",
-        defaultModel: "openai/gpt-4o-mini",
-        suggestedModels: ["openai/gpt-4o-mini", "amazon/nova-micro", "anthropic/claude-3.5-sonnet", "meta/llama-3.3-70b"],
+        defaultModel: "openai/chat-latest",
+        suggestedModels: [
+            "openai/chat-latest",
+            "openai/gpt-4o-mini",
+            "google/gemini-3.7-flash",
+            "anthropic/claude-3-5-haiku",
+            "meta/llama-3.3-70b",
+            "amazon/nova-micro"
+        ],
         apiKeyPlaceholder: "Paste your Vercel AI Gateway Key",
         apiKeyLabel: "🔑 Vercel AI Gateway Key *",
         apiKeyHelpUrl: "https://vercel.com/dashboard",
@@ -93,7 +112,7 @@ const POPULAR_PROVIDERS = {
         icon: "🦙",
         baseUrl: "http://localhost:11434/v1",
         defaultModel: "llama3.2",
-        suggestedModels: ["llama3.2", "qwen2.5", "phi4", "deepseek-r1"],
+        suggestedModels: ["llama3.2", "qwen2.5:7b", "phi4-mini", "mistral", "deepseek-r1:8b"],
         apiKeyPlaceholder: "Not required (local server)",
         apiKeyLabel: "🔑 API Key (Optional for Local)",
         apiKeyHelpUrl: "https://ollama.com",
@@ -183,24 +202,37 @@ function setupTabs() {
     });
 }
 
+function getBrowserTheme() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function applyTheme(isDark) {
+    const body = document.body;
+    const themeToggle = document.getElementById('themeToggle');
+    const darkModeCheckbox = document.getElementById('darkMode');
+
+    if (isDark) {
+        body.setAttribute('data-theme', 'dark');
+        if (themeToggle) themeToggle.textContent = '☀️';
+        if (darkModeCheckbox) darkModeCheckbox.checked = true;
+    } else {
+        body.setAttribute('data-theme', 'light');
+        if (themeToggle) themeToggle.textContent = '🌙';
+        if (darkModeCheckbox) darkModeCheckbox.checked = false;
+    }
+    currentSettings.darkMode = isDark;
+}
+
 function setupThemeToggle() {
     const themeToggle = document.getElementById('themeToggle');
-    const body = document.body;
+    if (!themeToggle) return;
 
     themeToggle.addEventListener('click', () => {
-        const isDark = body.hasAttribute('data-theme');
-        
-        if (isDark) {
-            body.removeAttribute('data-theme');
-            themeToggle.textContent = '🌙';
-            currentSettings.darkMode = false;
-        } else {
-            body.setAttribute('data-theme', 'dark');
-            themeToggle.textContent = '☀️';
-            currentSettings.darkMode = true;
-        }
-
-        chrome.storage.sync.set({ darkMode: currentSettings.darkMode });
+        const isCurrentlyDark = document.body.getAttribute('data-theme') === 'dark' ||
+            (!document.body.hasAttribute('data-theme') && getBrowserTheme());
+        const newDark = !isCurrentlyDark;
+        applyTheme(newDark);
+        chrome.storage.sync.set({ darkMode: newDark });
     });
 }
 
@@ -226,15 +258,23 @@ async function loadAllSettings() {
                 enabledModes = enabledModes.filter(k => validBuiltInKeys.includes(k));
                 if (!enabledModes.includes('retone')) {
                     enabledModes.unshift('retone');
+                    chrome.storage.sync.set({ enabledModes });
                 }
             } else {
                 enabledModes = validBuiltInKeys;
+                chrome.storage.sync.set({ enabledModes });
             }
+
+            // Auto-detect browser theme if not explicitly set in sync storage
+            const browserIsDark = getBrowserTheme();
+            const isDarkMode = (result.darkMode !== undefined && result.darkMode !== null)
+                ? result.darkMode
+                : browserIsDark;
 
             currentSettings = {
                 openaiApiKey: result.openaiApiKey || '',
                 openaiBaseUrl: result.openaiBaseUrl || '',
-                selectedModel: result.selectedModel || 'gpt-4o-mini',
+                selectedModel: result.selectedModel || 'chat-latest',
                 customModes: result.customModes || {},
                 enabledModes: enabledModes,
                 maxTextLength: result.maxTextLength || 8000,
@@ -242,7 +282,7 @@ async function loadAllSettings() {
                 enablePreviewMode: result.enablePreviewMode !== false,
                 enableUsageTracking: result.enableUsageTracking !== false,
                 enableKeyboardShortcuts: result.enableKeyboardShortcuts !== false,
-                darkMode: result.darkMode || false
+                darkMode: isDarkMode
             };
 
             updateUIFromSettings();
@@ -262,7 +302,6 @@ function updateUIFromSettings() {
     document.getElementById('enablePreviewMode').checked = currentSettings.enablePreviewMode;
     document.getElementById('enableUsageTracking').checked = currentSettings.enableUsageTracking;
     document.getElementById('enableKeyboardShortcuts').checked = currentSettings.enableKeyboardShortcuts;
-    document.getElementById('darkMode').checked = currentSettings.darkMode;
 
     // Detect and configure provider UI
     const detectedKey = detectProviderFromUrl(baseUrl);
@@ -280,11 +319,8 @@ function updateUIFromSettings() {
     
     updateModelSuggestions(provider.suggestedModels);
 
-    // Apply theme
-    if (currentSettings.darkMode) {
-        document.body.setAttribute('data-theme', 'dark');
-        document.getElementById('themeToggle').textContent = '☀️';
-    }
+    // Apply auto-detected or configured theme
+    applyTheme(currentSettings.darkMode);
 }
 
 function detectProviderFromUrl(url) {
@@ -393,17 +429,24 @@ function setupEventListeners() {
     document.getElementById('clearStats').addEventListener('click', clearUsageStats);
 
     // Advanced tab
-    document.getElementById('darkMode').addEventListener('change', (e) => {
-        currentSettings.darkMode = e.target.checked;
-        if (e.target.checked) {
-            document.body.setAttribute('data-theme', 'dark');
-            document.getElementById('themeToggle').textContent = '☀️';
-        } else {
-            document.body.removeAttribute('data-theme');
-            document.getElementById('themeToggle').textContent = '🌙';
-        }
-        chrome.storage.sync.set({ darkMode: currentSettings.darkMode });
-    });
+    const darkModeCheckbox = document.getElementById('darkMode');
+    if (darkModeCheckbox) {
+        darkModeCheckbox.addEventListener('change', (e) => {
+            applyTheme(e.target.checked);
+            chrome.storage.sync.set({ darkMode: e.target.checked });
+        });
+    }
+
+    // Automatically adapt to browser/system theme changes when user has not saved an explicit override
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            chrome.storage.sync.get(['darkMode'], (result) => {
+                if (result.darkMode === undefined || result.darkMode === null) {
+                    applyTheme(e.matches);
+                }
+            });
+        });
+    }
 
     document.getElementById('exportSettings').addEventListener('click', exportSettings);
     document.getElementById('importSettings').addEventListener('click', () => {
@@ -804,7 +847,7 @@ async function clearUsageStats() {
 async function exportSettings() {
     try {
         const exportData = {
-            version: '2.5.0',
+            version: '2.5.2',
             timestamp: new Date().toISOString(),
             settings: currentSettings,
             stats: currentStats

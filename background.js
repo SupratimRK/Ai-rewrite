@@ -1,11 +1,14 @@
 // === ENHANCED CONFIGURATION ===
 const CONFIG = {
     API_ENDPOINTS: {
+        'chat-latest': "https://api.openai.com/v1/chat/completions",
+        'gpt-5.6-luna': "https://api.openai.com/v1/chat/completions",
         'gpt-4o-mini': "https://api.openai.com/v1/chat/completions",
+        'o4-mini': "https://api.openai.com/v1/chat/completions",
         'gpt-4o': "https://api.openai.com/v1/chat/completions",
         'gpt-3.5-turbo': "https://api.openai.com/v1/chat/completions"
     },
-    DEFAULT_MODEL: 'amazon/nova-micro',
+    DEFAULT_MODEL: 'chat-latest',
     DEFAULT_ENDPOINT: "https://api.openai.com/v1/chat/completions",
     MAX_TEXT_LENGTH: 8000,
     MIN_TEXT_LENGTH: 3,
@@ -175,6 +178,9 @@ chrome.runtime.onInstalled.addListener(async () => {
     await verifyKeyboardShortcuts();
 });
 
+// Ensure context menus are created on service worker initialization
+setupContextMenus().catch(err => console.log("Context menu init:", err?.message));
+
 // === STARTUP HANDLER ===
 chrome.runtime.onStartup.addListener(async () => {
     console.log("AI Rewriter Extension Starting Up");
@@ -219,9 +225,11 @@ async function initializeDefaultSettings() {
                 enableUndo: result.enableUndo !== false,
                 enablePreviewMode: result.enablePreviewMode !== false,
                 enableUsageTracking: result.enableUsageTracking !== false,
-                enableKeyboardShortcuts: result.enableKeyboardShortcuts !== false,
-                darkMode: result.darkMode || false
+                enableKeyboardShortcuts: result.enableKeyboardShortcuts !== false
             };
+            if (result.darkMode !== undefined) {
+                defaults.darkMode = result.darkMode;
+            }
             
             chrome.storage.sync.set(defaults, () => {
                 console.log("Default settings initialized");
@@ -262,14 +270,27 @@ async function setupContextMenus() {
                 }
                 
                 try {
-                    const enabledModes = result.enabledModes || Object.keys(BUILT_IN_MODES);
+                    const validBuiltInKeys = Object.keys(BUILT_IN_MODES);
+                    let enabledModes = result.enabledModes;
+                    if (Array.isArray(enabledModes)) {
+                        enabledModes = enabledModes.filter(k => validBuiltInKeys.includes(k));
+                        if (!enabledModes.includes('retone')) {
+                            enabledModes.unshift('retone');
+                            chrome.storage.sync.set({ enabledModes });
+                        }
+                    } else {
+                        enabledModes = validBuiltInKeys;
+                        chrome.storage.sync.set({ enabledModes });
+                    }
+
                     const customModes = result.customModes || {};
+                    const contexts = ["editable", "selection"];
                     
                     // Create parent menu
                     chrome.contextMenus.create({
                         id: CONTEXT_MENU_ID,
                         title: "✨ Rewrite with AI",
-                        contexts: ["editable"]
+                        contexts: contexts
                     }, () => {
                         if (chrome.runtime.lastError) {
                             console.error("Error creating parent menu:", chrome.runtime.lastError);
@@ -286,7 +307,7 @@ async function setupContextMenus() {
                             if (menuItemsCreated >= totalMenuItems) {
                                 contextMenusSetup = true;
                                 setupInProgress = false;
-                                console.log("Context menus created successfully.");
+                                console.log("Context menus created successfully with modes:", enabledModes);
                                 resolve();
                             }
                         };
@@ -298,7 +319,7 @@ async function setupContextMenus() {
                                     id: `${CONTEXT_MENU_ID}_${modeKey}`,
                                     parentId: CONTEXT_MENU_ID,
                                     title: `${BUILT_IN_MODES[modeKey].icon} ${BUILT_IN_MODES[modeKey].name}`,
-                                    contexts: ["editable"]
+                                    contexts: contexts
                                 }, () => {
                                     if (chrome.runtime.lastError) {
                                         console.error(`Error creating menu for ${modeKey}:`, chrome.runtime.lastError);
@@ -316,7 +337,7 @@ async function setupContextMenus() {
                                 id: `${CONTEXT_MENU_ID}_custom_${key}`,
                                 parentId: CONTEXT_MENU_ID,
                                 title: `🎨 ${mode.name}`,
-                                contexts: ["editable"]
+                                contexts: contexts
                             }, () => {
                                 if (chrome.runtime.lastError) {
                                     console.error(`Error creating custom menu for ${key}:`, chrome.runtime.lastError);
@@ -330,7 +351,7 @@ async function setupContextMenus() {
                             id: "separator1",
                             parentId: CONTEXT_MENU_ID,
                             type: "separator",
-                            contexts: ["editable"]
+                            contexts: contexts
                         }, () => {
                             if (chrome.runtime.lastError) {
                                 console.error("Error creating separator:", chrome.runtime.lastError);
@@ -342,7 +363,7 @@ async function setupContextMenus() {
                             id: `${CONTEXT_MENU_ID}_undo`,
                             parentId: CONTEXT_MENU_ID,
                             title: "↶ Undo Last Rewrite",
-                            contexts: ["editable"]
+                            contexts: contexts
                         }, () => {
                             if (chrome.runtime.lastError) {
                                 console.error("Error creating undo menu:", chrome.runtime.lastError);
@@ -354,7 +375,7 @@ async function setupContextMenus() {
                             id: `${CONTEXT_MENU_ID}_settings`,
                             parentId: CONTEXT_MENU_ID,
                             title: "⚙️ Settings",
-                            contexts: ["editable"]
+                            contexts: contexts
                         }, () => {
                             if (chrome.runtime.lastError) {
                                 console.error("Error creating settings menu:", chrome.runtime.lastError);
@@ -393,10 +414,9 @@ async function verifyKeyboardShortcuts() {
         const commands = await chrome.commands.getAll();
         console.log("Registered keyboard shortcuts:", commands);
         
-        const missingShortcuts = commands.filter(cmd => !cmd.shortcut);
+        const missingShortcuts = commands.filter(cmd => !cmd.shortcut && cmd.name !== '_execute_action');
         if (missingShortcuts.length > 0) {
-            console.warn("Some keyboard shortcuts are not assigned:", missingShortcuts.map(c => c.name));
-            console.log("Users can configure shortcuts at chrome://extensions/shortcuts");
+            console.log("Shortcuts available for custom assignment in chrome://extensions/shortcuts:", missingShortcuts.map(c => c.name));
         } else {
             console.log("All keyboard shortcuts are properly registered");
         }
@@ -506,6 +526,9 @@ async function getSettings() {
             let enabledModes = result.enabledModes;
             if (Array.isArray(enabledModes)) {
                 enabledModes = enabledModes.filter(k => validBuiltInKeys.includes(k));
+                if (!enabledModes.includes('retone')) {
+                    enabledModes.unshift('retone');
+                }
             } else {
                 enabledModes = validBuiltInKeys;
             }

@@ -6,7 +6,7 @@
 
 **(Transform your writing with OpenAI and OpenAI-compatible APIs! 🚀)**
 
-[![Version](https://img.shields.io/badge/Version-2.5.1-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
+[![Version](https://img.shields.io/badge/Version-2.5.2-blue)](https://github.com/SupratimRK/Ai-rewrite/releases) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)](https://chrome.google.com/webstore) [![AI Powered](https://img.shields.io/badge/AI-OpenAI-red)](https://platform.openai.com/) [![JavaScript](https://img.shields.io/badge/Language-JavaScript-blue)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![GitHub Stars](https://img.shields.io/github/stars/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/SupratimRK/Ai-rewrite?style=social)](https://github.com/SupratimRK/Ai-rewrite/network/members) [![GitHub Issues](https://img.shields.io/github/issues/SupratimRK/Ai-rewrite)](https://github.com/SupratimRK/Ai-rewrite/issues) [![Validation](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml/badge.svg)](https://github.com/SupratimRK/Ai-rewrite/actions/workflows/validate.yml)
 
 **AI Text Rewriter Pro** is a powerful Chrome extension that revolutionizes your writing using OpenAI and OpenAI-compatible APIs. Perfect for content creators, professionals, students, and anyone who wants to enhance their writing with AI assistance. Features **15 built-in rewriting modes including Retone**, **custom prompts**, **grammar checking**, **undo functionality**, and seamless integration across all websites.
 
@@ -29,20 +29,19 @@ Select some text, right-click, pick a vibe, and BAM! 💥 New words. Hopefully b
 
 ---
 
-## 🚀 What's New in Version 2.5.1! 🚀
+## 🚀 What's New in Version 2.5.2! 🚀
 
-- ✨ **New Context-Aware "Retone" Mode** - Intelligently analyzes writing context and rewrites with elevated tone, clarity, and enhanced vocabulary
-- 🧹 **Streamlined Modes** - Removed cluttered and sloppy modes for a focused 15-mode professional writing suite
-- 🛠️ **Fixed Preview Mode** - Text injection now works reliably when clicking "Insert"
-- ✨ **Improved Highlighting** - Input/textarea fields now get a golden outline highlight
-- 🔄 **OpenAI Integration** - Uses OpenAI instead of Google Gemini (since v2.5.0)
-- 🌐 **Custom API Endpoints** - Support for OpenAI-compatible APIs (LM Studio, Ollama, etc.)
+- 🌓 **Automatic Browser Theme Detection** - Options page now automatically detects and syncs with your browser's preferred color scheme (Light/Dark)
+- ⚡ **Curated Fast & Non-Pro AI Models** - Updated provider presets with latest fast, cost-effective models and dynamic evergreen pointers (`chat-latest`, `gemini-flash-lite-latest`, `deepseek-v4-flash`, `openrouter/auto`)
+- 🔧 **Streamlined Groq Integration** - Cleaned provider labeling and optimized fast model presets (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, `openai/gpt-oss-20b`)
+- ✨ **Context-Aware "Retone" Mode** - Intelligently analyzes writing context and rewrites with elevated tone, clarity, and enhanced vocabulary
+- 🛠️ **Reliable Text Injection** - Fixed preview mode text replacement and enhanced field highlighting
 - 🎭 **15 Professional Writing Modes** - From context-aware Retone to technical precision
 - 🎨 **Custom Mode Creator** - Build your own rewriting styles
 - ↶ **Undo Functionality** - Instantly revert any rewrite
-- ⌨️ **Keyboard Shortcuts** - Lightning-fast rewriting with hotkeys (`Ctrl+Shift+R`, `Ctrl+Shift+H`, `Ctrl+Shift+P`, `Ctrl+Shift+G`)
+- ⌨️ **Keyboard Shortcuts** - Lightning-fast rewriting with hotkeys
 - 📊 **Usage Analytics** - Track your writing improvements
-- 🌙 **Dark Mode** - Easy on the eyes, beautiful interface
+- 📤 **Settings Export/Import** - Backup and share your configurations
 - 🔄 **Multiple AI Models** - Choose from GPT-4o, GPT-4o-mini, or GPT-3.5-turbo
 - 📤 **Settings Export/Import** - Backup and share your configurations
 - 🛡️ **Enhanced Error Handling** - Robust retry logic and user-friendly messages
@@ -127,7 +126,7 @@ Alright, since this isn't (yet?) on the Chrome Web Store (because who has time f
 - `Ctrl+Shift+H` - Humanize selected text
 - `Ctrl+Shift+P` - Professional tone
 - `Ctrl+Shift+G` - Fix grammar and spelling
-- `Ctrl+Shift+Z` - Undo last rewrite
+- `Undo Rewrite` - Configurable in `chrome://extensions/shortcuts` (e.g., `Ctrl+Shift+Z`)
 
 ---
 
@@ -151,12 +150,12 @@ The extension includes built-in 1-click presets for curated cloud and local prov
 
 | Provider | Icon | Endpoint / Base URL | Default Model | Key Format |
 |---|---|---|---|---|
-| **OpenAI** | 🟢 | `https://api.openai.com/v1` | `gpt-4o-mini` | `sk-...` |
+| **OpenAI** | 🟢 | `https://api.openai.com/v1` | `chat-latest` (Dynamic latest pointer) | `sk-...` |
 | **OpenRouter** | 🔀 | `https://openrouter.ai/api/v1` | `openrouter/auto` (Smart Auto-Router) | `sk-or-v1-...` |
-| **Groq (Ultra-Fast)** | ⚡ | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | `gsk_...` |
-| **DeepSeek** | 🐋 | `https://api.deepseek.com` | `deepseek-chat` (Auto-routes to latest) | `sk-...` |
-| **Google Gemini** | ✨ | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.0-flash` | `AIzaSy...` |
-| **Vercel AI Gateway** | ▲ | `https://ai-gateway.vercel.sh/v1` | `openai/gpt-4o-mini` | API key |
+| **Groq** | ⚡ | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | `gsk_...` |
+| **DeepSeek** | 🐋 | `https://api.deepseek.com` | `deepseek-v4-flash` | `sk-...` |
+| **Google Gemini** | ✨ | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-flash-lite-latest` | `AIzaSy...` |
+| **Vercel AI Gateway** | ▲ | `https://ai-gateway.vercel.sh/v1` | `openai/chat-latest` | API key |
 | **Ollama (Local)** | 🦙 | `http://localhost:11434/v1` | `llama3.2` | Free / None |
 | **LM Studio (Local)** | 🧪 | `http://localhost:1234/v1` | `local-model` (Loaded model) | Free / None |
 | **Custom** | ⚙️ | *User-defined* | *User-defined* | Any compatible key |
