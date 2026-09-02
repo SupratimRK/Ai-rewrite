@@ -508,7 +508,10 @@ async function getSettings() {
             'enableUndo',
             'enablePreviewMode',
             'enableUsageTracking',
-            'enableKeyboardShortcuts'
+            'enableKeyboardShortcuts',
+            'themeMode',
+            'theme',
+            'darkMode'
         ], (result) => {
             const validBuiltInKeys = Object.keys(BUILT_IN_MODES);
             let enabledModes = result.enabledModes;
@@ -520,6 +523,8 @@ async function getSettings() {
             } else {
                 enabledModes = validBuiltInKeys;
             }
+
+            const theme = result.themeMode || result.theme || (result.darkMode === false ? 'light' : (result.darkMode === true ? 'dark' : 'system'));
             
             resolve({
                 openaiApiKey: result.openaiApiKey || '',
@@ -534,7 +539,8 @@ async function getSettings() {
                 enableUndo: result.enableUndo !== false,
                 enablePreviewMode: result.enablePreviewMode !== false,
                 enableUsageTracking: result.enableUsageTracking !== false,
-                enableKeyboardShortcuts: result.enableKeyboardShortcuts !== false
+                enableKeyboardShortcuts: result.enableKeyboardShortcuts !== false,
+                theme: theme
             });
         });
     });
@@ -802,14 +808,10 @@ async function performRewrite(tab, info, modeInfo, settings) {
 // === ENHANCED API FUNCTIONS ===
 
 async function callOpenAIApiWithRetry(apiKey, baseUrl, text, modeInfo, settings) {
-    // Validate API key
-    if (!apiKey || apiKey.trim() === '') {
-        throw new Error('API key not configured - Please add your OpenAI API key in settings');
-    }
-    
-    // Basic API key format validation (OpenAI keys typically start with 'sk-')
-    if (!apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
-        console.warn('API key format might be incorrect - OpenAI keys typically start with sk-');
+    // Validate API key (required unless local endpoint)
+    const isLocal = baseUrl && (baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1'));
+    if (!isLocal && (!apiKey || apiKey.trim() === '')) {
+        throw new Error('API key not configured - Please add your API key in settings');
     }
     
     let lastError;
@@ -845,6 +847,53 @@ async function callOpenAIApiWithRetry(apiKey, baseUrl, text, modeInfo, settings)
     throw lastError;
 }
 
+// Extract content text from varied provider responses (OpenAI, Gemini, OpenRouter, Anthropic, DeepSeek, Ollama)
+function extractContentFromResponse(data) {
+    if (!data) return null;
+
+    // 1. Standard OpenAI Chat Completion: choices[0].message.content
+    const choice = data.choices?.[0];
+    if (choice) {
+        if (typeof choice.message?.content === 'string' && choice.message.content.trim()) {
+            return choice.message.content;
+        }
+        // Multi-part content array
+        if (Array.isArray(choice.message?.content)) {
+            const textParts = choice.message.content
+                .map(p => (typeof p === 'string' ? p : p.text || ''))
+                .join('');
+            if (textParts.trim()) return textParts;
+        }
+        // Legacy completion endpoint: choices[0].text
+        if (typeof choice.text === 'string' && choice.text.trim()) {
+            return choice.text;
+        }
+        // DeepSeek / reasoning models fallback
+        if (typeof choice.message?.reasoning_content === 'string' && choice.message.reasoning_content.trim() && !choice.message?.content) {
+            return choice.message.reasoning_content;
+        }
+        if (choice.delta?.content) {
+            return choice.delta.content;
+        }
+    }
+
+    // 2. Google Gemini native format: candidates[0].content.parts[0].text
+    if (data.candidates?.[0]?.content?.parts) {
+        const partsText = data.candidates[0].content.parts
+            .map(p => p.text || '')
+            .join('');
+        if (partsText.trim()) return partsText;
+    }
+
+    // 3. Anthropic Claude native format: content[0].text
+    if (Array.isArray(data.content) && data.content[0]?.text) {
+        const anthropicText = data.content.map(c => c.text || '').join('');
+        if (anthropicText.trim()) return anthropicText;
+    }
+
+    return null;
+}
+
 async function callOpenAIApi(apiKey, baseUrl, text, modeInfo, settings) {
     const model = settings.selectedModel || CONFIG.DEFAULT_MODEL;
     
@@ -873,7 +922,7 @@ async function callOpenAIApi(apiKey, baseUrl, text, modeInfo, settings) {
         top_p: 0.8
     };
 
-    console.log(`Sending request to OpenAI (${model})...`);
+    console.log(`Sending request to AI provider (${model})...`);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
@@ -910,11 +959,12 @@ async function callOpenAIApi(apiKey, baseUrl, text, modeInfo, settings) {
 
         const data = await response.json();
         
-        if (data.choices?.[0]?.message?.content) {
-            let resultText = data.choices[0].message.content.trim();
-            return postProcessResult(resultText, modeInfo.key);
+        const extracted = extractContentFromResponse(data);
+        if (extracted && extracted.trim()) {
+            return postProcessResult(extracted.trim(), modeInfo.key);
         } else {
-            throw new Error("Invalid API response structure");
+            console.error("Unrecognized or empty API response structure:", data);
+            throw new Error("Invalid or empty response from AI model");
         }
         
     } catch (error) {
@@ -1090,10 +1140,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 enableFloatingButton: settings.enableFloatingButton !== false,
                 defaultRewriteMode: defaultKey,
                 defaultModeName: modeName,
-                enablePreviewMode: settings.enablePreviewMode !== false
+                enablePreviewMode: settings.enablePreviewMode !== false,
+                theme: settings.theme || 'system'
             });
         }).catch(err => {
-            sendResponse({ enableFloatingButton: true, defaultRewriteMode: 'retone', defaultModeName: 'Retone' });
+            sendResponse({ enableFloatingButton: true, defaultRewriteMode: 'retone', defaultModeName: 'Retone', theme: 'system' });
         });
         return true;
     }
@@ -1535,8 +1586,17 @@ function replaceSelectedTextEnhanced(replacementText, originalText) {
 }
 
 // === MODERN GLASSMORPHIC NOTIFICATION SYSTEM ===
-function notifyUser(tabId, message, isError = false, duration = 4000) {
+async function notifyUser(tabId, message, isError = false, duration = 4000, themeMode) {
     console.log(`Notifying user in tab ${tabId}: ${message}`);
+    
+    if (!themeMode) {
+        try {
+            const settings = await getSettings();
+            themeMode = settings.theme || 'system';
+        } catch (e) {
+            themeMode = 'system';
+        }
+    }
     
     // Clean any leading emoji from message string
     const cleanMsg = (message || '').replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\s]+/u, '').trim();
@@ -1553,7 +1613,8 @@ function notifyUser(tabId, message, isError = false, duration = 4000) {
 
     chrome.scripting.executeScript({
         target: { tabId: tabId },
-        func: (msg, type, durationMs, isSettings) => {
+        func: (msg, type, durationMs, isSettings, themePref) => {
+            const isDark = themePref === 'dark' || (themePref !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
             let notifyDiv = document.getElementById('--ai-rewriter-notifier');
             if (!notifyDiv) {
                 notifyDiv = document.createElement('div');
@@ -1564,15 +1625,18 @@ function notifyUser(tabId, message, isError = false, duration = 4000) {
                     right: '20px',
                     padding: '12px 18px',
                     borderRadius: '16px',
-                    color: '#ffffff',
-                    backgroundColor: 'rgba(15, 23, 42, 0.94)',
+                    color: isDark ? '#ffffff' : '#0f172a',
+                    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)',
                     backdropFilter: 'blur(20px)',
                     webkitBackdropFilter: 'blur(20px)',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.14)' : '1px solid rgba(0, 0, 0, 0.12)',
                     zIndex: '2147483647',
                     fontSize: '13px',
                     fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
                     fontWeight: '600',
-                    boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.12)',
+                    boxShadow: isDark 
+                        ? '0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12)' 
+                        : '0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(99, 102, 241, 0.12)',
                     opacity: '0',
                     transform: 'translateX(30px) scale(0.95)',
                     transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -1593,6 +1657,9 @@ function notifyUser(tabId, message, isError = false, duration = 4000) {
             } else {
                 notifyDiv.style.opacity = '1';
                 notifyDiv.style.transform = 'translateX(0) scale(1)';
+                notifyDiv.style.color = isDark ? '#ffffff' : '#0f172a';
+                notifyDiv.style.backgroundColor = isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)';
+                notifyDiv.style.border = isDark ? '1px solid rgba(255, 255, 255, 0.14)' : '1px solid rgba(0, 0, 0, 0.12)';
                 notifyDiv.style.cursor = isSettings ? 'pointer' : 'default';
                 if (notifyDiv.dataset.timeoutId) {
                     clearTimeout(parseInt(notifyDiv.dataset.timeoutId));
@@ -1602,15 +1669,24 @@ function notifyUser(tabId, message, isError = false, duration = 4000) {
             // High-resolution SVG indicators
             let iconSvg = '';
             if (type === 'loading') {
-                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;"><svg style="animation: aiSpin 0.9s linear infinite; width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg></div>`;
+                const stroke = isDark ? '#818cf8' : '#4f46e5';
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;"><svg style="animation: aiSpin 0.9s linear infinite; width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg></div>`;
             } else if (type === 'success') {
-                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: rgba(16, 185, 129, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
+                const bg = isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.14)';
+                const stroke = isDark ? '#34d399' : '#059669';
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: ${bg}; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
             } else if (type === 'error') {
-                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: rgba(239, 68, 68, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>`;
+                const bg = isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.14)';
+                const stroke = isDark ? '#f87171' : '#dc2626';
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: ${bg}; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>`;
             } else if (type === 'warning') {
-                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>`;
+                const bg = isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.14)';
+                const stroke = isDark ? '#fbbf24' : '#d97706';
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: ${bg}; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>`;
             } else {
-                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: rgba(99, 102, 241, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>`;
+                const bg = isDark ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.14)';
+                const stroke = isDark ? '#a5b4fc' : '#4f46e5';
+                iconSvg = `<div style="width: 22px; height: 22px; flex-shrink: 0; background: ${bg}; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>`;
             }
 
             if (!document.getElementById('--ai-rewriter-toast-styles')) {
@@ -1640,7 +1716,7 @@ function notifyUser(tabId, message, isError = false, duration = 4000) {
 
             notifyDiv.dataset.timeoutId = timeoutId.toString();
         },
-        args: [cleanMsg, statusType, duration, isSettingsMessage]
+        args: [cleanMsg, statusType, duration, isSettingsMessage, themeMode]
     }).catch(err => {
         console.error("Failed to inject notification script:", err);
     });
@@ -1679,7 +1755,7 @@ async function showPreviewPopover(tabId, frameId, originalText, previewText, mod
         await chrome.scripting.executeScript({
             target: { tabId: tabId, frameIds: frameId ? [frameId] : undefined },
             func: createInlinePreviewUI,
-            args: [previewId, previewText, originalText, modeName]
+            args: [previewId, previewText, originalText, modeName, settings.theme || 'system']
         });
     } catch (error) {
         console.error("Failed to show in-place preview:", error);
@@ -1688,7 +1764,7 @@ async function showPreviewPopover(tabId, frameId, originalText, previewText, mod
 }
 
 // Function that runs in page context to overwrite text and attach slim action panel
-function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
+function createInlinePreviewUI(previewId, previewText, originalText, modeName, themeMode) {
     // 1. Remove any previous preview panel or revert old session
     const oldPanel = document.getElementById('--ai-rewriter-inline-panel');
     if (oldPanel) {
@@ -1719,13 +1795,14 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
             }
         }
 
-        if (targetText) {
+        if (targetText && targetText.trim()) {
+            const cleanTarget = targetText.trim();
             const candidates = document.querySelectorAll(
                 'div[contenteditable="true"], [role="textbox"], textarea, input, .ProseMirror, .public-DraftEditor-content, .copyable-text, [data-lexical-editor="true"], div[data-tab="10"]'
             );
             for (const el of candidates) {
                 const val = el.value || el.innerText || el.textContent;
-                if (val && val.includes(targetText)) {
+                if (val && (val.includes(cleanTarget) || val.trim() === cleanTarget)) {
                     return el;
                 }
             }
@@ -1769,13 +1846,16 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
             nodes.push(walker.currentNode);
         }
         
+        const cleanTarget = textToSelect.replace(/\u00a0/g, ' ').trim();
+
         // Check single node match
         for (const node of nodes) {
-            const idx = node.textContent.indexOf(textToSelect);
+            const nodeText = (node.textContent || '').replace(/\u00a0/g, ' ');
+            const idx = nodeText.indexOf(cleanTarget);
             if (idx !== -1) {
                 const range = document.createRange();
                 range.setStart(node, idx);
-                range.setEnd(node, idx + textToSelect.length);
+                range.setEnd(node, idx + cleanTarget.length);
                 currentSel.removeAllRanges();
                 currentSel.addRange(range);
                 return true;
@@ -1786,15 +1866,16 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         let fullText = '';
         const nodeRanges = [];
         for (const node of nodes) {
+            const normText = (node.textContent || '').replace(/\u00a0/g, ' ');
             const start = fullText.length;
-            const end = start + node.textContent.length;
+            const end = start + normText.length;
             nodeRanges.push({ node, start, end });
-            fullText += node.textContent;
+            fullText += normText;
         }
         
-        const matchIdx = fullText.indexOf(textToSelect);
+        const matchIdx = fullText.indexOf(cleanTarget);
         if (matchIdx !== -1) {
-            const matchEnd = matchIdx + textToSelect.length;
+            const matchEnd = matchIdx + cleanTarget.length;
             let startNode = null, startOffset = 0;
             let endNode = null, endOffset = 0;
             
@@ -1820,58 +1901,84 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
             }
         }
         
+        // Fallback: If target matches container text, select full node contents
+        const containerText = (container.innerText || container.textContent || '').replace(/\u00a0/g, ' ').trim();
+        if (containerText === cleanTarget || (cleanTarget && containerText.includes(cleanTarget))) {
+            const range = document.createRange();
+            range.selectNodeContents(container);
+            currentSel.removeAllRanges();
+            currentSel.addRange(range);
+            return true;
+        }
+        
         return false;
     };
 
-    // Case 1: Standard Input or Textarea
-    if (activeEl && (activeEl.tagName === 'TEXTAREA' || 
-        (activeEl.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeEl.type)))) {
+    // Case 1: Standard Input / Textarea
+    if (activeEl && (activeEl.tagName === 'TEXTAREA' || (activeEl.tagName === 'INPUT' && /^(text|search|email|url|password|tel)$/i.test(activeEl.type)))) {
         targetType = 'input';
         targetInput = activeEl;
+        originalValue = activeEl.value || '';
         inputStart = activeEl.selectionStart;
         inputEnd = activeEl.selectionEnd;
-        originalValue = activeEl.value;
 
-        // If selection collapsed on context click, find originalText in value
-        if (inputStart === inputEnd && originalText) {
-            const foundIdx = originalValue.indexOf(originalText);
-            if (foundIdx !== -1) {
-                inputStart = foundIdx;
-                inputEnd = foundIdx + originalText.length;
+        if (inputStart === inputEnd) {
+            if (originalText && originalText.trim()) {
+                const cleanOrig = originalText.trim();
+                const idx = originalValue.indexOf(originalText);
+                if (idx !== -1) {
+                    inputStart = idx;
+                    inputEnd = idx + originalText.length;
+                } else if (originalValue.indexOf(cleanOrig) !== -1) {
+                    inputStart = originalValue.indexOf(cleanOrig);
+                    inputEnd = inputStart + cleanOrig.length;
+                } else {
+                    inputStart = 0;
+                    inputEnd = originalValue.length;
+                }
+            } else {
+                inputStart = 0;
+                inputEnd = originalValue.length;
             }
         }
 
         const before = originalValue.substring(0, inputStart);
         const after = originalValue.substring(inputEnd);
         const newValue = before + previewText + after;
-        
+
         setNativeInputValue(activeEl, newValue);
-        activeEl.focus();
         activeEl.setSelectionRange(inputStart, inputStart + previewText.length);
+        activeEl.focus();
+
         anchorRect = activeEl.getBoundingClientRect();
-    }
+    } 
     // Case 2: ContentEditable (WhatsApp Web, Reddit, Facebook, Notion, etc.)
     else if (activeEl && (activeEl.isContentEditable || activeEl.getAttribute('role') === 'textbox')) {
         targetType = 'contentEditable';
         activeEl.focus();
 
-        let range = null;
         if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-            range = sel.getRangeAt(0);
-        } else if (originalText) {
-            selectTextInContainer(activeEl, originalText);
-            if (sel && sel.rangeCount > 0) {
-                range = sel.getRangeAt(0);
-            }
-        }
-
-        if (range) {
-            anchorRect = range.getBoundingClientRect();
+            anchorRect = sel.getRangeAt(0).getBoundingClientRect();
         } else {
             anchorRect = activeEl.getBoundingClientRect();
         }
 
-        // Insert rewritten text via execCommand & inputEvent to update WhatsApp / Reddit / Lexical state
+        let selected = false;
+        if (originalText && originalText.trim()) {
+            if (!sel.rangeCount || sel.isCollapsed || sel.toString().trim() !== originalText.trim()) {
+                selected = selectTextInContainer(activeEl, originalText);
+            } else {
+                selected = true;
+            }
+        }
+
+        if (!selected && (!sel.rangeCount || sel.isCollapsed)) {
+            const range = document.createRange();
+            range.selectNodeContents(activeEl);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
         let inserted = false;
         try {
             inserted = document.execCommand('insertText', false, previewText);
@@ -1940,6 +2047,9 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         document.head.appendChild(style);
     }
 
+    // Resolve Theme (Dark vs Light)
+    const isDark = themeMode === 'dark' || (themeMode !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
     // Calculate Slim Floating Panel Position
     let panelTop = anchorRect.top + window.scrollY - 54;
     if (panelTop < window.scrollY + 10) {
@@ -1959,12 +2069,14 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
         height: '44px',
         padding: '4px 6px 4px 10px',
         borderRadius: '9999px',
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.96)',
         backdropFilter: 'blur(20px)',
         webkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.18)',
-        boxShadow: '0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08)',
-        color: '#ffffff',
+        border: isDark ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid rgba(0, 0, 0, 0.12)',
+        boxShadow: isDark 
+            ? '0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08)' 
+            : '0 16px 36px -4px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(99, 102, 241, 0.12)',
+        color: isDark ? '#ffffff' : '#0f172a',
         zIndex: '2147483647',
         fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
         display: 'flex',
@@ -2069,10 +2181,10 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     badge.style.gap = '8px';
     badge.style.paddingRight = '2px';
     badge.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(139,92,246,0.3));border:1px solid rgba(255,255,255,0.25);box-shadow:0 0 10px rgba(99,102,241,0.5);flex-shrink:0;overflow:hidden;padding:2px;">
+        <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:${isDark ? 'linear-gradient(135deg,rgba(99,102,241,0.3),rgba(139,92,246,0.3))' : 'linear-gradient(135deg,rgba(99,102,241,0.18),rgba(139,92,246,0.18))'};border:1px solid ${isDark ? 'rgba(255,255,255,0.25)' : 'rgba(99,102,241,0.3)'};box-shadow:0 0 10px ${isDark ? 'rgba(99,102,241,0.5)' : 'rgba(99,102,241,0.25)'};flex-shrink:0;overflow:hidden;padding:2px;">
             <img src="${brandIconUrl}" alt="Brand" style="width:100%;height:100%;object-fit:contain;border-radius:50%;">
         </div>
-        <span style="font-size:12.5px;font-weight:700;color:#f8fafc;letter-spacing:-0.01em;white-space:nowrap;">${cleanModeTitle}</span>
+        <span style="font-size:12.5px;font-weight:700;color:${isDark ? '#f8fafc' : '#0f172a'};letter-spacing:-0.01em;white-space:nowrap;">${cleanModeTitle}</span>
     `;
 
     // Accept Button
@@ -2096,7 +2208,7 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     acceptBtn.innerHTML = `
         <svg style="width: 13px; height: 13px; flex-shrink: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         <span style="letter-spacing:-0.01em;">Accept</span>
-        <span style="display:inline-flex; align-items:center; justify-content:center; gap:3px; padding: 2px 7px; font-size: 11px; font-weight: 700; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; color: #ffffff; line-height: 1;">
+        <span style="display:inline-flex; align-items:center; justify-content:center; gap:3px; padding: 2px 7px; font-size: 11px; font-weight: 700; background: ${isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.18)'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; color: #ffffff; line-height: 1;">
             <svg style="width: 10px; height: 10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
             <span>Enter</span>
         </span>
@@ -2118,9 +2230,9 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     // Decline Button
     const declineBtn = document.createElement('button');
     Object.assign(declineBtn.style, {
-        background: 'rgba(244, 63, 94, 0.15)',
-        color: '#fb7185',
-        border: '1px solid rgba(244, 63, 94, 0.35)',
+        background: isDark ? 'rgba(244, 63, 94, 0.15)' : 'rgba(244, 63, 94, 0.1)',
+        color: isDark ? '#fb7185' : '#e11d48',
+        border: isDark ? '1px solid rgba(244, 63, 94, 0.35)' : '1px solid rgba(244, 63, 94, 0.28)',
         fontSize: '12.5px',
         fontWeight: '600',
         padding: '6px 13px',
@@ -2135,18 +2247,18 @@ function createInlinePreviewUI(previewId, previewText, originalText, modeName) {
     declineBtn.innerHTML = `
         <svg style="width: 12px; height: 12px; flex-shrink: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         <span style="letter-spacing:-0.01em;">Decline</span>
-        <span style="display:inline-flex; align-items:center; justify-content:center; padding: 2px 6px; font-size: 10.5px; font-weight: 700; background: rgba(0,0,0,0.28); border: 1px solid rgba(244,63,94,0.4); border-radius: 4px; color: #fecdd3; line-height: 1;">Esc</span>
+        <span style="display:inline-flex; align-items:center; justify-content:center; padding: 2px 6px; font-size: 10.5px; font-weight: 700; background: ${isDark ? 'rgba(0,0,0,0.28)' : 'rgba(244,63,94,0.12)'}; border: 1px solid ${isDark ? 'rgba(244,63,94,0.4)' : 'rgba(244,63,94,0.3)'}; border-radius: 4px; color: ${isDark ? '#fecdd3' : '#e11d48'}; line-height: 1;">Esc</span>
     `;
     declineBtn.onmouseover = () => {
-        declineBtn.style.background = 'rgba(244, 63, 94, 0.28)';
-        declineBtn.style.borderColor = 'rgba(244, 63, 94, 0.6)';
-        declineBtn.style.color = '#ffffff';
+        declineBtn.style.background = isDark ? 'rgba(244, 63, 94, 0.28)' : 'rgba(244, 63, 94, 0.18)';
+        declineBtn.style.borderColor = isDark ? 'rgba(244, 63, 94, 0.6)' : 'rgba(244, 63, 94, 0.45)';
+        declineBtn.style.color = isDark ? '#ffffff' : '#be123c';
         declineBtn.style.transform = 'translateY(-1px)';
     };
     declineBtn.onmouseout = () => {
-        declineBtn.style.background = 'rgba(244, 63, 94, 0.15)';
-        declineBtn.style.borderColor = 'rgba(244, 63, 94, 0.35)';
-        declineBtn.style.color = '#fb7185';
+        declineBtn.style.background = isDark ? 'rgba(244, 63, 94, 0.15)' : 'rgba(244, 63, 94, 0.1)';
+        declineBtn.style.borderColor = isDark ? 'rgba(244, 63, 94, 0.35)' : 'rgba(244, 63, 94, 0.28)';
+        declineBtn.style.color = isDark ? '#fb7185' : '#e11d48';
         declineBtn.style.transform = 'translateY(0)';
     };
     declineBtn.onclick = (e) => {

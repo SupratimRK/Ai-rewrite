@@ -49,8 +49,23 @@ window.addEventListener('message', (event) => {
     let cachedSettings = {
         enableFloatingButton: true,
         defaultRewriteMode: 'retone',
-        defaultModeName: 'Retone'
+        defaultModeName: 'Retone',
+        theme: 'system'
     };
+
+    // Resolve current theme ('dark' or 'light')
+    function resolveTheme() {
+        const theme = cachedSettings.themeMode || cachedSettings.theme || 'system';
+        if (theme === 'dark') return 'dark';
+        if (theme === 'light') return 'light';
+        return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+
+    function updateButtonTheme() {
+        if (!buttonEl) return;
+        const currentTheme = resolveTheme();
+        buttonEl.setAttribute('data-theme', currentTheme);
+    }
 
     // Helper to get clean mode name without any brackets
     function getCleanModeTitle() {
@@ -65,6 +80,7 @@ window.addEventListener('message', (event) => {
                 cachedSettings = res;
                 if (buttonEl) {
                     buttonEl.title = `Rewrite with ${getCleanModeTitle()}`;
+                    updateButtonTheme();
                     if (!cachedSettings.enableFloatingButton) {
                         buttonEl.style.display = 'none';
                     }
@@ -73,6 +89,44 @@ window.addEventListener('message', (event) => {
         });
     }
     syncSettings();
+
+    // Listen for storage changes in real-time
+    try {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+            chrome.storage.onChanged.addListener((changes, area) => {
+                if (area === 'sync' || area === 'local') {
+                    if (changes.themeMode || changes.theme) {
+                        cachedSettings.theme = (changes.themeMode || changes.theme).newValue;
+                        updateButtonTheme();
+                    }
+                    if (changes.darkMode !== undefined && !changes.themeMode && !changes.theme) {
+                        cachedSettings.theme = changes.darkMode.newValue ? 'dark' : 'light';
+                        updateButtonTheme();
+                    }
+                    if (changes.defaultRewriteMode) {
+                        cachedSettings.defaultRewriteMode = changes.defaultRewriteMode.newValue;
+                        syncSettings();
+                    }
+                    if (changes.enableFloatingButton !== undefined) {
+                        cachedSettings.enableFloatingButton = changes.enableFloatingButton.newValue;
+                        if (!cachedSettings.enableFloatingButton && buttonEl) {
+                            buttonEl.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {}
+
+    // Listen to system color scheme changes if theme is system
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            const currentPref = cachedSettings.themeMode || cachedSettings.theme || 'system';
+            if (currentPref === 'system') {
+                updateButtonTheme();
+            }
+        });
+    }
 
     // Inject styles for the floating quick button
     function injectFloatingButtonStyles() {
@@ -90,18 +144,37 @@ window.addEventListener('message', (event) => {
                 height: 26px;
                 padding: 0;
                 border-radius: 50%;
-                background: rgba(15, 23, 42, 0.94);
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
-                border: 1px solid rgba(255, 255, 255, 0.25);
-                box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.5), 0 0 10px rgba(99, 102, 241, 0.4);
                 cursor: pointer;
                 user-select: none;
                 opacity: 0;
                 transform: scale(0.85);
-                transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s, border-color 0.15s;
+                transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s, border-color 0.15s, background-color 0.15s;
                 pointer-events: auto;
                 box-sizing: border-box;
+            }
+            /* Dark Theme */
+            #--ai-rewriter-quick-btn[data-theme="dark"],
+            #--ai-rewriter-quick-btn:not([data-theme]) {
+                background: rgba(15, 23, 42, 0.94);
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.5), 0 0 10px rgba(99, 102, 241, 0.4);
+            }
+            #--ai-rewriter-quick-btn[data-theme="dark"]:hover,
+            #--ai-rewriter-quick-btn:not([data-theme]):hover {
+                border-color: rgba(99, 102, 241, 0.9);
+                box-shadow: 0 6px 20px -2px rgba(99, 102, 241, 0.6), 0 0 0 2px rgba(99, 102, 241, 0.4);
+            }
+            /* Light Theme */
+            #--ai-rewriter-quick-btn[data-theme="light"] {
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(0, 0, 0, 0.14);
+                box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.12), 0 0 10px rgba(99, 102, 241, 0.25);
+            }
+            #--ai-rewriter-quick-btn[data-theme="light"]:hover {
+                border-color: rgba(99, 102, 241, 0.85);
+                box-shadow: 0 6px 20px -2px rgba(99, 102, 241, 0.4), 0 0 0 2px rgba(99, 102, 241, 0.25);
             }
             #--ai-rewriter-quick-btn.visible {
                 opacity: 0.92;
@@ -110,8 +183,6 @@ window.addEventListener('message', (event) => {
             #--ai-rewriter-quick-btn:hover {
                 opacity: 1;
                 transform: scale(1.15);
-                border-color: rgba(99, 102, 241, 0.9);
-                box-shadow: 0 6px 20px -2px rgba(99, 102, 241, 0.6), 0 0 0 2px rgba(99, 102, 241, 0.4);
             }
             #--ai-rewriter-quick-btn img.btn-brand-img {
                 width: 16px;
@@ -138,6 +209,8 @@ window.addEventListener('message', (event) => {
         buttonEl = document.createElement('div');
         buttonEl.id = '--ai-rewriter-quick-btn';
         buttonEl.setAttribute('role', 'button');
+        buttonEl.setAttribute('tabindex', '-1');
+        updateButtonTheme();
         buttonEl.setAttribute('tabindex', '-1');
         buttonEl.title = `Rewrite with ${getCleanModeTitle()}`;
 

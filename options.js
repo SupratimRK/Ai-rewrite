@@ -168,6 +168,7 @@ function updateContextMenusDebounced() {
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', async () => {
+    populateManifestVersion();
     setupTabs();
     setupThemeControls();
     await loadAllSettings();
@@ -177,6 +178,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderModesList();
     renderCustomModes();
 });
+
+function populateManifestVersion() {
+    try {
+        const manifestVersion = (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) 
+            ? chrome.runtime.getManifest().version 
+            : '3.0.0';
+        const versionSpan = document.getElementById('extensionVersion');
+        if (versionSpan) versionSpan.textContent = manifestVersion;
+        const headerBadge = document.getElementById('headerVersionBadge');
+        if (headerBadge) headerBadge.textContent = `v${manifestVersion}`;
+    } catch (e) {
+        console.warn("Could not read manifest version:", e);
+    }
+}
 
 function setupTabs() {
     const tabs = document.querySelectorAll('.tab');
@@ -276,7 +291,7 @@ function setupThemeControls() {
         btn.addEventListener('click', () => {
             const mode = btn.dataset.themeVal;
             applyThemeMode(mode);
-            chrome.storage.sync.set({ themeMode: mode, darkMode: currentSettings.darkMode });
+            chrome.storage.sync.set({ themeMode: mode, theme: mode, darkMode: currentSettings.darkMode });
         });
     });
 
@@ -287,7 +302,7 @@ function setupThemeControls() {
             const currentIsDark = document.documentElement.classList.contains('dark');
             const newMode = currentIsDark ? 'light' : 'dark';
             applyThemeMode(newMode);
-            chrome.storage.sync.set({ themeMode: newMode, darkMode: !currentIsDark });
+            chrome.storage.sync.set({ themeMode: newMode, theme: newMode, darkMode: !currentIsDark });
         });
     }
 
@@ -709,7 +724,7 @@ function setupEventListeners() {
         darkModeCheckbox.addEventListener('change', (e) => {
             const mode = e.target.checked ? 'dark' : 'light';
             applyThemeMode(mode);
-            chrome.storage.sync.set({ themeMode: mode, darkMode: e.target.checked });
+            chrome.storage.sync.set({ themeMode: mode, theme: mode, darkMode: e.target.checked });
         });
     }
 
@@ -755,10 +770,6 @@ async function saveGeneralSettings() {
     if (!apiKey && !isLocal) {
         showStatus('API Key cannot be empty', 'error');
         return;
-    }
-
-    if (!baseUrl && apiKey && !apiKey.startsWith('sk-') && !apiKey.startsWith('sess-')) {
-        showStatus('Warning: OpenAI API keys typically start with "sk-". Double-check your key.', 'warning');
     }
 
     const settings = {
