@@ -46,12 +46,29 @@ window.addEventListener('message', (event) => {
     let buttonEl = null;
     let currentTarget = null;
     let hideTimer = null;
+    let currentBubbleState = 'idle'; // 'idle' | 'loading' | 'success'
+    let tickTimer = null;
     let cachedSettings = {
         enableFloatingButton: true,
         defaultRewriteMode: 'retone',
         defaultModeName: 'Retone',
         theme: 'system'
     };
+
+    // Brand icon SVG (Dual magic sparkle stars)
+    const BRAND_ICON_SVG = `
+        <svg class="btn-brand-svg" viewBox="0 0 48 48" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#2196f3" d="M23.426,31.911l-1.719,3.936c-0.661,1.513-2.754,1.513-3.415,0l-1.719-3.936c-1.529-3.503-4.282-6.291-7.716-7.815l-4.73-2.1c-1.504-0.668-1.504-2.855,0-3.523l4.583-2.034c3.522-1.563,6.324-4.455,7.827-8.077l1.741-4.195c0.646-1.557,2.797-1.557,3.443,0l1.741,4.195c1.503,3.622,4.305,6.514,7.827,8.077l4.583,2.034c1.504,0.668,1.504,2.855,0,3.523l-4.73,2.1C27.708,25.62,24.955,28.409,23.426,31.911z"/>
+            <path fill="#7e57c2" d="M38.423,43.248l-0.493,1.131c-0.361,0.828-1.507,0.828-1.868,0l-0.493-1.131c-0.879-2.016-2.464-3.621-4.44-4.5l-1.52-0.675c-0.822-0.365-0.822-1.56,0-1.925l1.435-0.638c2.027-0.901,3.64-2.565,4.504-4.65l0.507-1.222c0.353-0.852,1.531-0.852,1.884,0l0.507,1.222c0.864,2.085,2.477,3.749,4.504,4.65l1.435,0.638c0.822,0.365,0.822,1.56,0,1.925l-1.52,0.675C40.887,39.627,39.303,41.232,38.423,43.248z"/>
+        </svg>
+    `;
+
+    // Success Checkmark SVG
+    const TICK_ICON_SVG = `
+        <svg class="btn-tick-svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="4 10.5 8 14.5 16 6"></polyline>
+        </svg>
+    `;
 
     // Resolve current theme ('dark' or 'light')
     function resolveTheme() {
@@ -73,13 +90,40 @@ window.addEventListener('message', (event) => {
         return raw.split('(')[0].replace(/^Fix\s+/i, '').replace(/\s+Tone$/i, '').trim() || 'Rewrite';
     }
 
+    // Set bubble state ('idle', 'loading', 'success')
+    function setBubbleState(state) {
+        if (!buttonEl) return;
+        currentBubbleState = state;
+        buttonEl.classList.remove('loading', 'success');
+        clearTimeout(tickTimer);
+
+        if (state === 'loading') {
+            buttonEl.classList.add('loading');
+            buttonEl.title = 'Rewriting text...';
+        } else if (state === 'success') {
+            buttonEl.classList.add('success');
+            buttonEl.title = 'Text rewritten successfully!';
+            tickTimer = setTimeout(() => {
+                setBubbleState('idle');
+                if (currentTarget) {
+                    updateButtonPosition(currentTarget);
+                }
+            }, 1000);
+        } else {
+            // Idle
+            buttonEl.title = `Rewrite with ${getCleanModeTitle()}`;
+        }
+    }
+
     // Refresh settings from background
     function syncSettings() {
         safeSendMessage({ action: 'getFloatingButtonSettings' }, (res) => {
             if (res) {
                 cachedSettings = res;
                 if (buttonEl) {
-                    buttonEl.title = `Rewrite with ${getCleanModeTitle()}`;
+                    if (currentBubbleState === 'idle') {
+                        buttonEl.title = `Rewrite with ${getCleanModeTitle()}`;
+                    }
                     updateButtonTheme();
                     if (!cachedSettings.enableFloatingButton) {
                         buttonEl.style.display = 'none';
@@ -128,7 +172,7 @@ window.addEventListener('message', (event) => {
         });
     }
 
-    // Inject styles for the floating quick button
+    // Inject styles for the floating quick button (Flat design - No shadow, No glow)
     function injectFloatingButtonStyles() {
         if (document.getElementById('--ai-rewriter-floating-btn-styles')) return;
         const style = document.createElement('style');
@@ -144,58 +188,139 @@ window.addEventListener('message', (event) => {
                 height: 26px;
                 padding: 0;
                 border-radius: 50%;
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
                 cursor: pointer;
                 user-select: none;
                 opacity: 0;
-                transform: scale(0.85);
-                transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s, border-color 0.15s, background-color 0.15s;
+                transform: scale(0.88);
+                transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
                 pointer-events: auto;
                 box-sizing: border-box;
+                box-shadow: none !important;
+                filter: none !important;
+                text-shadow: none !important;
+                outline: none;
             }
-            /* Dark Theme */
+
+            /* Dark Theme - Flat */
             #--ai-rewriter-quick-btn[data-theme="dark"],
             #--ai-rewriter-quick-btn:not([data-theme]) {
-                background: rgba(15, 23, 42, 0.94);
-                border: 1px solid rgba(255, 255, 255, 0.25);
-                box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.5), 0 0 10px rgba(99, 102, 241, 0.4);
+                background-color: #1e293b;
+                border: 1px solid #334155;
+                box-shadow: none !important;
             }
             #--ai-rewriter-quick-btn[data-theme="dark"]:hover,
             #--ai-rewriter-quick-btn:not([data-theme]):hover {
-                border-color: rgba(99, 102, 241, 0.9);
-                box-shadow: 0 6px 20px -2px rgba(99, 102, 241, 0.6), 0 0 0 2px rgba(99, 102, 241, 0.4);
+                background-color: #334155;
+                border-color: #475569;
+                box-shadow: none !important;
             }
-            /* Light Theme */
+
+            /* Light Theme - Flat */
             #--ai-rewriter-quick-btn[data-theme="light"] {
-                background: rgba(255, 255, 255, 0.95);
-                border: 1px solid rgba(0, 0, 0, 0.14);
-                box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.12), 0 0 10px rgba(99, 102, 241, 0.25);
+                background-color: #ffffff;
+                border: 1px solid #cbd5e1;
+                box-shadow: none !important;
             }
             #--ai-rewriter-quick-btn[data-theme="light"]:hover {
-                border-color: rgba(99, 102, 241, 0.85);
-                box-shadow: 0 6px 20px -2px rgba(99, 102, 241, 0.4), 0 0 0 2px rgba(99, 102, 241, 0.25);
+                background-color: #f1f5f9;
+                border-color: #94a3b8;
+                box-shadow: none !important;
             }
+
             #--ai-rewriter-quick-btn.visible {
-                opacity: 0.92;
+                opacity: 0.95;
                 transform: scale(1);
             }
             #--ai-rewriter-quick-btn:hover {
                 opacity: 1;
-                transform: scale(1.15);
             }
-            #--ai-rewriter-quick-btn img.btn-brand-img {
+
+            /* Brand Icon inside button */
+            #--ai-rewriter-quick-btn .btn-brand-svg {
+                display: block;
                 width: 16px;
                 height: 16px;
-                object-fit: contain;
-                border-radius: 50%;
                 pointer-events: none;
                 transition: transform 0.15s ease;
             }
-            #--ai-rewriter-quick-btn.loading {
-                opacity: 0.7;
-                border-color: #6366f1;
+
+            /* Spinner element */
+            #--ai-rewriter-quick-btn .btn-spinner {
+                display: none;
+                width: 14px;
+                height: 14px;
+                border: 2px solid rgba(33, 150, 243, 0.25);
+                border-top-color: #2196f3;
+                border-radius: 50%;
+                animation: --ai-rewriter-spin 0.65s linear infinite;
+                box-sizing: border-box;
                 pointer-events: none;
+            }
+
+            @keyframes --ai-rewriter-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            /* Tick / Checkmark element */
+            #--ai-rewriter-quick-btn .btn-tick-svg {
+                display: none;
+                width: 14px;
+                height: 14px;
+                pointer-events: none;
+                animation: --ai-rewriter-tick-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+
+            @keyframes --ai-rewriter-tick-pop {
+                0% { transform: scale(0.6); opacity: 0; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+
+            /* Processing / Loading State */
+            #--ai-rewriter-quick-btn.loading {
+                pointer-events: none;
+                cursor: wait;
+            }
+            #--ai-rewriter-quick-btn.loading .btn-brand-svg {
+                display: none;
+            }
+            #--ai-rewriter-quick-btn.loading .btn-spinner {
+                display: block;
+            }
+            #--ai-rewriter-quick-btn.loading .btn-tick-svg {
+                display: none;
+            }
+
+            /* Success State - Flat */
+            #--ai-rewriter-quick-btn.success {
+                pointer-events: none;
+            }
+            #--ai-rewriter-quick-btn.success[data-theme="dark"],
+            #--ai-rewriter-quick-btn.success:not([data-theme]) {
+                background-color: #064e3b;
+                border-color: #059669;
+                box-shadow: none !important;
+            }
+            #--ai-rewriter-quick-btn.success[data-theme="dark"] .btn-tick-svg,
+            #--ai-rewriter-quick-btn.success:not([data-theme]) .btn-tick-svg {
+                color: #34d399;
+            }
+            #--ai-rewriter-quick-btn.success[data-theme="light"] {
+                background-color: #f0fdf4;
+                border-color: #86efac;
+                box-shadow: none !important;
+            }
+            #--ai-rewriter-quick-btn.success[data-theme="light"] .btn-tick-svg {
+                color: #16a34a;
+            }
+            #--ai-rewriter-quick-btn.success .btn-brand-svg {
+                display: none;
+            }
+            #--ai-rewriter-quick-btn.success .btn-spinner {
+                display: none;
+            }
+            #--ai-rewriter-quick-btn.success .btn-tick-svg {
+                display: block;
             }
         `;
         document.head.appendChild(style);
@@ -211,12 +336,12 @@ window.addEventListener('message', (event) => {
         buttonEl.setAttribute('role', 'button');
         buttonEl.setAttribute('tabindex', '-1');
         updateButtonTheme();
-        buttonEl.setAttribute('tabindex', '-1');
         buttonEl.title = `Rewrite with ${getCleanModeTitle()}`;
 
-        const brandIconUrl = chrome.runtime.getURL('icons/icon48.png');
         buttonEl.innerHTML = `
-            <img class="btn-brand-img" src="${brandIconUrl}" alt="AI">
+            ${BRAND_ICON_SVG}
+            <div class="btn-spinner"></div>
+            ${TICK_ICON_SVG}
         `;
 
         // Prevent focus loss on click
@@ -267,26 +392,32 @@ window.addEventListener('message', (event) => {
         if (!text) return;
 
         const btn = getOrCreateButton();
-        if (btn.classList.contains('loading')) return;
-        btn.classList.add('loading');
+        if (currentBubbleState === 'loading') return;
 
-        let cleared = false;
-        const stopSpin = () => {
-            if (!cleared) {
-                cleared = true;
-                btn.classList.remove('loading');
+        setBubbleState('loading');
+
+        let isHandled = false;
+        // Safety fallback timer so it never spins indefinitely if network drops
+        const safetyTimer = setTimeout(() => {
+            if (!isHandled) {
+                isHandled = true;
+                setBubbleState('idle');
             }
-        };
-
-        // Safety fallback timer so it never spins indefinitely
-        const timer = setTimeout(stopSpin, 8000);
+        }, 15000);
 
         safeSendMessage({
             action: 'triggerQuickRewrite',
             text: text
-        }, () => {
-            clearTimeout(timer);
-            stopSpin();
+        }, (res) => {
+            if (isHandled) return;
+            isHandled = true;
+            clearTimeout(safetyTimer);
+
+            if (res && res.success) {
+                setBubbleState('success');
+            } else {
+                setBubbleState('idle');
+            }
         });
     }
 
@@ -311,7 +442,9 @@ window.addEventListener('message', (event) => {
         }
 
         const btn = getOrCreateButton();
-        btn.title = `Rewrite with ${getCleanModeTitle()}`;
+        if (currentBubbleState === 'idle') {
+            btn.title = `Rewrite with ${getCleanModeTitle()}`;
+        }
 
         // Calculate pixel-perfect positioning
         let top, left;
